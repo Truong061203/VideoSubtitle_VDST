@@ -1,40 +1,43 @@
-﻿<Window x:Class="VDST.View.LoginWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:VDST.View"
-        xmlns:Icons="http://metro.mahapps.com/winfx/xaml/iconpacks"
-        xmlns:uc="clr-namespace:VDST.View.VUserControl"
-        mc:Ignorable="d"
-        AllowsTransparency="True"
-        WindowStyle="None"
-        WindowStartupLocation="CenterScreen"
-        Background="Transparent"
-        Height="600"
-        ResizeMode="NoResize"
-        FontFamily="Fonts\Roboto-Black.ttf"
-        Icon="/Images/login.png"
-        Width="500"
-        MouseDown="Window_MouseDown">
+﻿<Window
+    x:Class="VDST.View.LoginWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Icons="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:LoginVM="clr-namespace:VDST.ViewModel"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:VDST.View"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:uc="clr-namespace:VDST.View.VUserControl"
+    Name="_this"
+    Width="500"
+    Height="600"
+    AllowsTransparency="True"
+    Background="Transparent"
+    FontFamily="Fonts\Roboto-Black.ttf"
+    Icon="/Images/login.png"
+    MouseDown="Window_MouseDown"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterScreen"
+    WindowStyle="None"
+    mc:Ignorable="d">
+    <Window.DataContext>
+        <LoginVM:LoginViewModel />
+    </Window.DataContext>
     <Window.Resources>
-        <Style TargetType="Button" x:Key="btnIconLog">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
-            <Setter Property="Padding" Value="5"/>
-            <Setter Property="MinHeight" Value="25"/>
-            <Setter Property="MinWidth" Value="25"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="10"/>
+        <Style x:Key="btnIconLog" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="MinHeight" Value="25" />
+            <Setter Property="MinWidth" Value="25" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Margin" Value="10" />
 
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                CornerRadius="5">
-                            <ContentPresenter HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"/>
+                        <Border Background="{TemplateBinding Background}" CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
 
                     </ControlTemplate>
@@ -42,151 +45,52 @@
             </Setter>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="LightGray"/>
+                    <Setter Property="Background" Value="#20462AD8" />
                 </Trigger>
                 <Trigger Property="IsPressed" Value="True">
-                    <Setter Property="Background" Value="DarkGray"/>
+                    <Setter Property="Background" Value="#33462AD8" />
                 </Trigger>
             </Style.Triggers>
         </Style>
     </Window.Resources>
 
-    <Border Background="White"
-             BorderBrush="MediumSlateBlue"
-             BorderThickness="2"
-             CornerRadius="20">
+    <Border
+        Background="White"
+        BorderBrush="MediumSlateBlue"
+        BorderThickness="2"
+        CornerRadius="15">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="auto"/>
-                <RowDefinition Height="*"/>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <Grid Grid.Row="0">
                 <TextBlock
-                     HorizontalAlignment="Left"
-                     Margin="10"
-                     FontWeight="DemiBold"
-                     FontSize="20"
-                     Text="Login-VDST"/>
-                <StackPanel HorizontalAlignment="Right" 
-                            Orientation="Horizontal">
-                    <Button Style="{StaticResource btnIconLog}"
-                           Click="MiniSize_Click">
-                        <Icons:PackIconMaterial 
-                            Kind="WindowMinimize"
-                            Width="15" 
-                            Height="15"/>
+                    Margin="15"
+                    HorizontalAlignment="Left"
+                    FontSize="20"
+                    FontWeight="Bold"
+                    Text="Login-VDST" />
+                <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                    <Button Click="MiniSize_Click" Style="{StaticResource btnIconLog}">
+                        <Icons:PackIconMaterial
+                            Width="15"
+                            Height="15"
+                            Kind="WindowMinimize" />
                     </Button>
 
-                    <Button Style="{StaticResource btnIconLog}"
-                             Click="Button_Close">
-                        <Icons:PackIconMaterial 
-                            Kind="WindowClose"
-                            Width="15" 
-                            Height="15"/>
+                    <Button Click="Button_Close" Style="{StaticResource btnIconLog}">
+                        <Icons:PackIconMaterial
+                            Width="15"
+                            Height="15"
+                            Kind="WindowClose" />
                     </Button>
 
                 </StackPanel>
             </Grid>
-            <Grid Grid.Row="1">
-                <StackPanel>
-                    <Image Source="/Images/login.png" 
-                            Height="100"  />
-                    <TextBlock
-                        HorizontalAlignment="Center"
-                        FontWeight="Bold"
-                        FontSize="30"
-                        Foreground="Black"
-                        Text="Login" />
-                </StackPanel>
-            </Grid>
-
-            <Grid Grid.Row="2">
-                <Grid Margin="10" 
-                      HorizontalAlignment="Center">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="auto"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <Grid Grid.Row="0">
-                        <StackPanel >
-                            <StackPanel Orientation="Horizontal"
-                                        Margin="5">
-                                <Icons:PackIconMaterial 
-                                            Kind="Account"
-                                            Width="20" 
-                                            Height="20"
-                                            VerticalAlignment="Center"
-                                            Margin="0,0,5,0"/>
-                                <TextBlock 
-                                        FontSize="16"
-                                        FontWeight="SemiBold"
-                                        Text="Username"/>
-                            </StackPanel>
-                            <Grid>
-                                <TextBox x:Name="tbxUsername"
-                                     Width="300"
-                                     Height="35"
-                                     FontWeight="Medium"
-                                     FontSize="14"
-                                     VerticalAlignment="Center"
-                                     Padding="7"
-                                     TabIndex="0">
-                                    <TextBox.Resources>
-                                        <Style TargetType="{x:Type Border}">
-                                            <Setter Property="CornerRadius" Value="7" />
-                                        </Style>
-                                    </TextBox.Resources>
-                                </TextBox>
-
-                                <TextBlock FontStyle="Italic"
-                                           FontSize="13"
-                                           IsHitTestVisible="False"
-                                           Margin="10 0"
-                                           Foreground="LightGray"
-                                           VerticalAlignment="Center"
-                                            HorizontalAlignment="Left"
-                                           Text="Nhập tên đăng nhập">
-                                    <TextBlock.Style>
-                                        <Style TargetType="{x:Type TextBlock}" >
-                                            <Setter Property="Visibility" Value="Collapsed"/>
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Text,ElementName=tbxUsername}" Value="">
-                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-
-                            </Grid>
-
-                        </StackPanel>
-                    </Grid>
-
-                    <Grid Grid.Row="1" Margin=" 0 50 0 0" >
-                        <StackPanel >
-                            <StackPanel Orientation="Horizontal" >
-                                <Icons:PackIconMaterial Kind="Key" />
-                                <TextBlock FontSize="16" 
-                                           Margin="5 0 "
-                                           FontWeight="SemiBold"
-                                           Text="Password"/>
-                            </StackPanel>
-                            <Grid>
-                                <uc:PasswordUC/>
-                            </Grid>
-                        </StackPanel>
-                    </Grid>
-
-
-
-                </Grid>
-            </Grid>
-
+            <Grid />
         </Grid>
     </Border>
+
 </Window>
