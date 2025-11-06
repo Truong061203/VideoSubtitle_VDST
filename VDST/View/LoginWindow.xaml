@@ -21,7 +21,8 @@
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.DataContext>
-        <LoginVM:LoginViewModel />
+        <LoginVM:LoginViewModel /> 
+        
     </Window.DataContext>
     <Window.Resources>
         <Style x:Key="btnIconLog" TargetType="Button">
