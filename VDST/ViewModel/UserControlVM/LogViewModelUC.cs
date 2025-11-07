@@ -3,16 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using VDST.Commands;
 using Serilog;
 using VDST.Model.Interfaces;
-using System.Windows;
+using VDST.View.VUserControl;
 
-namespace VDST.ViewModel
+namespace VDST.ViewModel.UserControlVM
 {
-    public class LoginViewModel : ViewModelBase, IViewModel
+    public class LogViewModelUC: ViewModelBase, IViewModel
     {
+
         private string _username;
         public string Username
         {
@@ -21,7 +23,7 @@ namespace VDST.ViewModel
             {
                 _username = value;
                 Log.Information("Username changed to: " + value);
-                RaisePropertyChanged(nameof(Username)); 
+                RaisePropertyChanged(nameof(Username));
                 (LoginCommand as VfxCommand)?.RaiseCanExecuteChanged();
             }
         }
@@ -39,9 +41,11 @@ namespace VDST.ViewModel
 
             }
         }
+        public event Action RegisterRequested;
 
         public ICommand LoginCommand { get; set; }
-        public LoginViewModel()
+        public ICommand RegisterCommand { get; set; } 
+        public LogViewModelUC()
         {
             Init_Data();
 
@@ -49,7 +53,12 @@ namespace VDST.ViewModel
         public void Init_Data()
         {
             LoginCommand = new VfxCommand(OnLogin, CanLogin);
+            RegisterCommand = new VfxCommand(OnGoToRegister, ()=>true);
+        }
 
+        private void OnGoToRegister(object obj)
+        {
+            RegisterRequested?.Invoke();
         }
 
         private bool CanLogin()
@@ -63,7 +72,7 @@ namespace VDST.ViewModel
 
         private void OnLogin(object obj)
         {
-            MessageBox.Show("Login successful for user: " );
+            MessageBox.Show("Login successful for user: ");
         }
     }
 }

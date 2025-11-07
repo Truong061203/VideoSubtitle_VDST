@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 
-namespace VDST.View
+namespace VDST.View.Windows
 {
     /// <summary>
     /// Interaction logic for LoginWindow.xaml
@@ -42,5 +42,6 @@ namespace VDST.View
                 this.WindowState = WindowState.Minimized;
             }
         }
+
     }
 }

@@ -13,14 +13,14 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace VDST.View
+namespace VDST.View.VUserControl
 {
     /// <summary>
-    /// Interaction logic for RegisterPage.xaml
+    /// Interaction logic for RegisterUC.xaml
     /// </summary>
-    public partial class RegisterPage : Page
+    public partial class RegisterUC : UserControl
     {
-        public RegisterPage()
+        public RegisterUC()
         {
             InitializeComponent();
         }
