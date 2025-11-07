@@ -34,7 +34,6 @@
             <uc:RegisterUC />
         </DataTemplate>
 
-
     </Window.Resources>
 
     <Border

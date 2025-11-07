@@ -13,7 +13,7 @@ namespace VDST.ViewModel.UserControlVM
         public event Action BackToLoginRequested;
 
         public ICommand BackToLoginCommand { get; set; }
-        private string _computerId = "askjfa12132";
+        private string _computerId = "0E68-8508-90CC-CA49-3790-2241-5BE2-9809";
         public string ComputerId
         {
             get { return _computerId; }
