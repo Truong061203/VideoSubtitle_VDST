@@ -18,5 +18,6 @@ namespace VDST.Sevices.DTOs
         public int expires_in { get; set; }
         public string refresh_token { get; set; }
         public int refresh_expires_in { get; set; }
+        public DateTime Expried { get; set; }
     }
 }

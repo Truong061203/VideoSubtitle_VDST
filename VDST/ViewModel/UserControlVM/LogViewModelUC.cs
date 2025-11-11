@@ -9,10 +9,12 @@ using VDST.Commands;
 using Serilog;
 using VDST.Model.Interfaces;
 using VDST.View.VUserControl;
+using VDST.Sevices;
+using VDST.Sevices.DTOs;
 
 namespace VDST.ViewModel.UserControlVM
 {
-    public class LogViewModelUC: ViewModelBase, IViewModel
+    public class LogViewModelUC : ViewModelBase, IViewModel
     {
 
         private string _username;
@@ -44,7 +46,7 @@ namespace VDST.ViewModel.UserControlVM
         public event Action RegisterRequested;
 
         public ICommand LoginCommand { get; set; }
-        public ICommand RegisterCommand { get; set; } 
+        public ICommand RegisterCommand { get; set; }
         public LogViewModelUC()
         {
             Init_Data();
@@ -53,7 +55,7 @@ namespace VDST.ViewModel.UserControlVM
         public void Init_Data()
         {
             LoginCommand = new VfxCommand(OnLogin, CanLogin);
-            RegisterCommand = new VfxCommand(OnGoToRegister, ()=>true);
+            RegisterCommand = new VfxCommand(OnGoToRegister, () => true);
         }
 
         private void OnGoToRegister(object obj)
@@ -70,9 +72,24 @@ namespace VDST.ViewModel.UserControlVM
             return false;
         }
 
-        private void OnLogin(object obj)
+        private async void OnLogin(object obj)
         {
-            MessageBox.Show("Login successful for user: ");
+            var bodyRequest = new VaivDTO
+            {
+                username = this.Username,
+                password = this.Password,
+                computerId = "0E68-8508-90CC-CA49-3790-2241-5BE2-9809"
+            };
+            var responseVaiv = await VaivService.Instance.LoginAsync(bodyRequest);
+            if (responseVaiv != null)
+            {
+                MessageBox.Show("Login Successful! Access Token: ");
+            }
+            else
+            {
+                MessageBox.Show("Login Failed!");
+            }
+
         }
     }
 }
