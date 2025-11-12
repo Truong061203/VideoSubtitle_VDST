@@ -1,15 +1,21 @@
-﻿using Microsoft.VisualBasic.Logging;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using Serilog;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace VDST.Utils
 {
+    /// <summary>
+    /// Save global variable for File App
+    /// </summary>
+    /// Tạo thư mục lưu trữ cài đặt ứng dụng trong AppData/Roaming
     public class GlobalVariable
     {
+
+
         private static GlobalVariable _instance;
         public static GlobalVariable Instance
         {
@@ -23,20 +29,28 @@ namespace VDST.Utils
             }
         }
         public string APP_SETTING_FOLER { get; set; }
-        public string PATH_SETTING_APP { get; set; }
+        public string Path_Save_App_Setting { get; set; }
 
         public GlobalVariable()
         {
             // C:\Users\<TênBạn>\AppData\Roaming
+
+        }
+        public void Loaded()
+        {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            APP_SETTING_FOLER = System.IO.Path.Combine(appData, "VDST_App");
-            Serilog.Log.Information("App_setting_folder :" +APP_SETTING_FOLER);
+            APP_SETTING_FOLER = Path.Combine(appData, "VDST");
+            Log.Information("AppData Folder :" + appData);
+            Log.Information("APP_SETTING_FOLER :" + APP_SETTING_FOLER);
             if (!Directory.Exists(APP_SETTING_FOLER))
             {
                 Directory.CreateDirectory(APP_SETTING_FOLER);
             }
-            PATH_SETTING_APP = System.IO.Path.Combine(APP_SETTING_FOLER, "settingApp.json");
-            Serilog.Log.Information("Path_setting_folder :" + APP_SETTING_FOLER);
+            Path_Save_App_Setting = System.IO.Path.Combine(APP_SETTING_FOLER, "ComputerId.json");
+            Log.Information("Path_setting_folder :" + APP_SETTING_FOLER);
+
         }
+
+
     }
 }

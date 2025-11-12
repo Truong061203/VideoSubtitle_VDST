@@ -3,6 +3,7 @@ using Serilog.Core;
 using System.Configuration;
 using System.Data;
 using System.Windows;
+using VDST.Utils;
 
 namespace VDST
 {
@@ -15,12 +16,20 @@ namespace VDST
         {
             base.OnStartup(e);
             Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
-                .WriteTo.Debug()
-                //.WriteTo.File("logs/applog-.txt", rollingInterval: RollingInterval.Day) // Ghi ra file, mỗi ngày 1 file mới
-                .CreateLogger();
+                  .MinimumLevel.Information()
+                  .WriteTo.Debug()
+                  //.WriteTo.File("logs/applog-.txt", rollingInterval: RollingInterval.Day) // Ghi ra file, mỗi ngày 1 file mới
+                  .CreateLogger();
             Log.Information("Application Starting Up.........................................\n");
+
+            //--------------------------------------------------------------
+            var configPath = GlobalVariable.Instance.Path_Save_App_Setting;
+            SettingApps.Instance.OnLoadFile(configPath);
         }
+
+
+     
+      
     }
 
 }

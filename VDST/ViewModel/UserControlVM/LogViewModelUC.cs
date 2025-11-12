@@ -11,6 +11,8 @@ using VDST.Model.Interfaces;
 using VDST.View.VUserControl;
 using VDST.Sevices;
 using VDST.Sevices.DTOs;
+using VDST.Utils;
+using VDST.View;
 
 namespace VDST.ViewModel.UserControlVM
 {
@@ -78,12 +80,14 @@ namespace VDST.ViewModel.UserControlVM
             {
                 username = this.Username,
                 password = this.Password,
-                computerId = "0E68-8508-90CC-CA49-3790-2241-5BE2-9809"
+                computerId = SettingApps.Instance.ComputerId
             };
             var responseVaiv = await VaivService.Instance.LoginAsync(bodyRequest);
             if (responseVaiv != null)
             {
-                MessageBox.Show("Login Successful! Access Token: ");
+                MainWindows wn = new MainWindows();
+                wn.Show();
+                Application.Current.Windows[0].Close();
             }
             else
             {
