@@ -74,6 +74,7 @@ namespace VDST.ViewModel.UserControlVM
             return false;
         }
 
+
         private async void OnLogin(object obj)
         {
             var bodyRequest = new VaivDTO
@@ -91,7 +92,7 @@ namespace VDST.ViewModel.UserControlVM
             }
             else
             {
-                MessageBox.Show("Login Failed!");
+                return;
             }
 
         }

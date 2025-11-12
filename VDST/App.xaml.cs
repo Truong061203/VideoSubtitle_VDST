@@ -23,7 +23,9 @@ namespace VDST
             Log.Information("Application Starting Up.........................................\n");
 
             //--------------------------------------------------------------
+
             var configPath = GlobalVariable.Instance.Path_Save_App_Setting;
+
             SettingApps.Instance.OnLoadFile(configPath);
         }
 

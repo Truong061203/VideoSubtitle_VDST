@@ -46,28 +46,35 @@ namespace VDST.Utils
 
         public void OnLoadFile(string path)
         {
-            //có rồi thì đọc file và load lên object
-            if (File.Exists(path))
+            try
             {
-                try
+                //có rồi thì đọc file và load lên object
+                if (File.Exists(path))
                 {
-
                     // đọc file json settingApp.json ComputerId
                     var json = File.ReadAllText(path);
                     Log.Information("Loading Setting App Json: " + json);
                     // chuyển json thành object SettingApps
-                    _instance = JsonConvert.DeserializeObject<SettingApps>(json); 
-                    Log.Information("Loaded ComputerId: " + _instance.ComputerId);
+                    var model = JsonConvert.DeserializeObject<SettingApps>(json);
+                    Log.Information("Convert Object :"+model.ComputerId);
+                    if (model != null)
+                    {
+                        ComputerId = model.ComputerId;
+                    }
+
                 }
-                catch (Exception ex)
+                // nếu chưa có thì get ComputerId mới và lưu vào file 
+
+                if (string.IsNullOrWhiteSpace(this.ComputerId))
                 {
-                    MessageBox.Show("Error loading settings: " + ex.Message);
+                    ComputerId = ComputerInfo.GetComputerId();
+                    OnSave(path);
                 }
             }
-            // nếu chưa có thì get ComputerId mới và lưu vào file 
-            ComputerId = ComputerInfo.GetComputerId(); 
-            OnSave(path);
-
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error loading settings: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -78,7 +85,8 @@ namespace VDST.Utils
         {
             try
             {
-                var json = JsonConvert.SerializeObject(_instance.ComputerId, Formatting.Indented);
+                // chuyển đổi đối tượng SettingApps thành json
+                var json = JsonConvert.SerializeObject(Instance, Formatting.Indented);
                 Log.Information("Setting App Json: " + json);
                 File.WriteAllText(path, json);
 

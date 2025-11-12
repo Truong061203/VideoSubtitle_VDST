@@ -33,21 +33,21 @@ namespace VDST.Utils
 
         public GlobalVariable()
         {
-            // C:\Users\<TênBạn>\AppData\Roaming
 
+            Loaded();
         }
         public void Loaded()
         {
+            // C:\Users\<TênBạn>\AppData\Roaming
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             APP_SETTING_FOLER = Path.Combine(appData, "VDST");
-            Log.Information("AppData Folder :" + appData);
             Log.Information("APP_SETTING_FOLER :" + APP_SETTING_FOLER);
             if (!Directory.Exists(APP_SETTING_FOLER))
             {
                 Directory.CreateDirectory(APP_SETTING_FOLER);
             }
-            Path_Save_App_Setting = System.IO.Path.Combine(APP_SETTING_FOLER, "ComputerId.json");
-            Log.Information("Path_setting_folder :" + APP_SETTING_FOLER);
+            Path_Save_App_Setting = Path.Combine(APP_SETTING_FOLER, "ComputerId.json");
+            Log.Information("Path_setting_folder :" + Path_Save_App_Setting);
 
         }
 

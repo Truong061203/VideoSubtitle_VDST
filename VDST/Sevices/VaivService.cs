@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace VDST.Sevices
 {
@@ -69,11 +70,13 @@ namespace VDST.Sevices
             var statusCode = (int)response.StatusCode;
             if (statusCode >= 400 && statusCode < 500)
             {
-                reasone += "Thông tin đăng nhập không đúng";
+                MessageBox.Show("Thông tin đăng nhập chưa đúng! ","Thông Báo" , MessageBoxButton.OK , MessageBoxImage.Error);
             }
             else if (statusCode >= 500)
             {
                 reasone += "Lỗi máy chủ, vui lòng thử lại sau";
+                MessageBox.Show("Lỗi máy chủ , vui lòng thử lại sau! ", "Thông Báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+
             }
             return null;
 
