@@ -1,19 +1,14 @@
 ﻿using Newtonsoft.Json;
 using Serilog;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Controls;
+using System.Windows;
 using VDST.Sevices.DTOs;
 using VDST.Utils;
 using VDST.ViewModel;
 
 namespace VDST.Repositories
 {
+   
     public class TokenRespositories : ViewModelBase
     {
         private static TokenRespositories _instance;
@@ -32,6 +27,9 @@ namespace VDST.Repositories
         private string _credentialPath { get; set; }
 
 
+        /// <summary>
+        /// Save Token Respositories and Credential File 
+        /// </summary>
         public TokenRespositories()
         {
             _pathToken = GlobalVariable.Instance.Path_Save_Token;
@@ -42,13 +40,21 @@ namespace VDST.Repositories
         /// <summary>
         /// Save File Token VaiV    
         /// </summary>
-        /// <param name="response"></param>
         public void SaveToken(VaivResponseDTO response)
         {
-            // chuyển đổi đối tượng thành chuỗi JSON
-            var jsonResonse = JsonConvert.SerializeObject(response);
-            var encrypted = SecurityHelper.Encrypt(jsonResonse);
-            File.WriteAllText(_pathToken, encrypted);
+            try
+            {
+
+                // chuyển đổi đối tượng thành chuỗi JSON
+                var jsonResonse = JsonConvert.SerializeObject(response);
+                var encrypted = SecurityHelper.Encrypt(jsonResonse);
+                File.WriteAllText(_pathToken, encrypted);
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Save Token Error: " + ex.Message);
+            }
         }
 
         /// <summary>
@@ -57,15 +63,22 @@ namespace VDST.Repositories
         /// <returns></returns>
         public VaivResponseDTO LoadToken()
         {
-            if (File.Exists(_pathToken))
+            try
             {
-                var json = File.ReadAllText(_pathToken);
-                var decrypted = SecurityHelper.Decrypt(json); 
-
-                var response = JsonConvert.DeserializeObject<VaivResponseDTO>(decrypted);
-                return response;
+                if (File.Exists(_pathToken))
+                {
+                    var json = File.ReadAllText(_pathToken);
+                    var decrypted = SecurityHelper.Decrypt(json);
+                    var response = JsonConvert.DeserializeObject<VaivResponseDTO>(decrypted);
+                    return response;
+                }
+                return null;
             }
-            return null;
+            catch (Exception ex)
+            {
+                MessageBox.Show("Load Token Error: " + ex.Message);
+                return null;
+            }
         }
 
 
@@ -94,8 +107,7 @@ namespace VDST.Repositories
                 return null;
             // read file và giải mã
             var jsonEncrypted = File.ReadAllText(_credentialPath);
-            string jsonSercurity = SecurityHelper.Decrypt(jsonEncrypted); 
-
+            string jsonSercurity = SecurityHelper.Decrypt(jsonEncrypted);
 
             var converted = JsonConvert.DeserializeObject<VaivDTO>(jsonSercurity);
             return converted;

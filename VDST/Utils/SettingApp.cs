@@ -11,6 +11,9 @@ using VDST.ViewModel;
 
 namespace VDST.Utils
 {
+    /// <summary>
+    /// save on load file ComputerId và KeyEncryptAES
+    /// </summary>
     public class SettingApp : ViewModelBase
     {
         private static SettingApp _instance;
@@ -58,13 +61,16 @@ namespace VDST.Utils
                 }
             }
         }
-        public void OnLoadFile(string path)
+        /// <summary>
+        /// Load File ComputerId từ path
+        /// </summary>
+        public void LoadFileC(string path)
         {
             try
             {
-               
+                bool isDataChanged = false;
 
-                //có rồi thì đọc file và load lên object
+                // check file tồn tại thì đọc và gán giá trị cho ComputerId và EncryptAES
                 if (File.Exists(path))
                 {
                     // đọc file json settingApp.json ComputerId
@@ -77,15 +83,25 @@ namespace VDST.Utils
                     if (model != null)
                     {
                         ComputerId = model.ComputerId;
+                        KeyEncryptAES = model.KeyEncryptAES;
                     }
 
                 }
-                // nếu chưa có thì get ComputerId mới và lưu vào file 
 
-                if (string.IsNullOrWhiteSpace(this.ComputerId))
+                // nếu chưa có thì get ComputerId mới và lưu vào file 
+                if (string.IsNullOrWhiteSpace(ComputerId))
                 {
                     ComputerId = ComputerInfo.GetComputerId();
-                    OnSave(path);
+                    isDataChanged = true;
+                }
+                if (string.IsNullOrWhiteSpace(KeyEncryptAES))
+                {
+                    KeyEncryptAES = Guid.NewGuid().ToString("N");
+                    isDataChanged = true;
+                }
+                if (isDataChanged)
+                {
+                    OnSaveFileC(path);
                 }
             }
             catch (Exception ex)
@@ -95,10 +111,9 @@ namespace VDST.Utils
         }
 
         /// <summary>
-        /// Save đối tượng SettingApps thành file json
+        /// Save File ComputerId On Path 
         /// </summary>
-        /// <param name="path"> Lưu đối tượng dưới dạng json vào file Path</param>
-        public void OnSave(string path)
+        public void OnSaveFileC(string path)
         {
             try
             {

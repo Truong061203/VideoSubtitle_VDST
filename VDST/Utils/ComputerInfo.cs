@@ -46,7 +46,6 @@ namespace VDST.Utils
                     text += "-";
                 }
             }
-
             return text;
         }
 

@@ -10,46 +10,68 @@ using VDST.Model.Interfaces;
 using System.Windows;
 using VDST.View.VUserControl;
 using VDST.ViewModel.UserControlVM;
+using VDST.Repositories;
+using VDST.View;
 
 namespace VDST.ViewModel
 {
-    public class LoginMainViewModel : ViewModelBase,IViewModel
+    public class LoginMainViewModel : ViewModelBase, IViewModel
     {
-       
-        private object _CurrentView ;
+        public event Action RequestClose;
+
+        private object _CurrentView;
         public object CurrentViewModel
         {
             get { return _CurrentView; }
-            set 
-            { 
-                _CurrentView = value; 
+            set
+            {
+                _CurrentView = value;
                 Log.Information("Switched to view: {ViewType}", value);
                 RaisePropertyChanged(nameof(CurrentViewModel));
             }
         }
 
-        private LogViewModelUC _logUC; 
+        private LogViewModelUC _logUC;
         private RegisterViewModelUC _registerUC;
         public LoginMainViewModel()
         {
-           Init_Data();
+            Init_Data();
         }
         public void Init_Data()
         {
-            _logUC = new LogViewModelUC(); 
-            _registerUC = new RegisterViewModelUC(); 
-            _CurrentView = _logUC;
-            _logUC.RegisterRequested += ShowRegisterView;
-            _registerUC.BackToLoginRequested += ShowLoginView; 
+            var token = TokenRespositories.Instance.LoadToken();
+            if (token != null && !string.IsNullOrEmpty(token.access_token))
+            {
+                OpenMainWindow();
+            }
+            else
+            {
+                _logUC = new LogViewModelUC();
+                _registerUC = new RegisterViewModelUC();
+                _logUC.RegisterRequested += ShowRegisterView;
+                _registerUC.BackToLoginRequested += ShowLoginView;
+                _CurrentView = _logUC;
+
+            }
+
+        }
+
+
+
+        private void OpenMainWindow()
+        {
+            MainWindows mainWindows = new MainWindows();
+            mainWindows.Show();
+            RequestClose?.Invoke();
         }
 
         public void ShowLoginView()
         {
             CurrentViewModel = _logUC;
-        }    
+        }
         public void ShowRegisterView()
         {
-            CurrentViewModel =_registerUC;
-        }   
+            CurrentViewModel = _registerUC;
+        }
     }
 }

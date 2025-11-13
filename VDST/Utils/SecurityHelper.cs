@@ -18,7 +18,9 @@ namespace VDST.Utils
             return machineId + "_" + secret;
         }
 
-        // 2. Hàm Mã Hóa (Đã sửa lỗi Key)
+       /// <summary>
+       /// Mã Hoá 
+       /// </summary>
         public static string Encrypt(string plainText)
         {
             // Tự động lấy khóa từ mã máy
@@ -57,7 +59,9 @@ namespace VDST.Utils
             catch { return ""; }
         }
 
-        // 3. Hàm Giải Mã
+        /// <summary>
+        /// Giải Mã 
+        /// </summary>
         public static string Decrypt(string cipherText)
         {
             // Tự động lấy khóa từ mã máy

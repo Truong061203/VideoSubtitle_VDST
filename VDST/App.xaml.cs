@@ -26,7 +26,7 @@ namespace VDST
 
             var configPath = GlobalVariable.Instance.Path_Save_ComputerId;
 
-            SettingApp.Instance.OnLoadFile(configPath);
+            SettingApp.Instance.LoadFileC(configPath);
         }
 
 

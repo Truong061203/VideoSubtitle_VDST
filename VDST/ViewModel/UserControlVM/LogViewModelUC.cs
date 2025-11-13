@@ -13,6 +13,7 @@ using VDST.Sevices;
 using VDST.Sevices.DTOs;
 using VDST.Utils;
 using VDST.View;
+using VDST.Repositories;
 
 namespace VDST.ViewModel.UserControlVM
 {
@@ -47,6 +48,8 @@ namespace VDST.ViewModel.UserControlVM
         }
         public event Action RegisterRequested;
 
+        public event Action LoginSucess;
+
         public ICommand LoginCommand { get; set; }
         public ICommand RegisterCommand { get; set; }
         public LogViewModelUC()
@@ -58,6 +61,16 @@ namespace VDST.ViewModel.UserControlVM
         {
             LoginCommand = new VfxCommand(OnLogin, CanLogin);
             RegisterCommand = new VfxCommand(OnGoToRegister, () => true);
+            LoadCredential();
+        }
+        private void LoadCredential()
+        {
+            var credential = TokenRespositories.Instance.LoadCredential();
+            if (credential != null)
+            {
+                Username = credential.username;
+                Password = credential.password;
+            }
         }
 
         private void OnGoToRegister(object obj)
@@ -75,22 +88,26 @@ namespace VDST.ViewModel.UserControlVM
         }
 
 
+
         private async void OnLogin(object obj)
         {
 
             var realComputerId = Utils.ComputerInfo.GetComputerId();
             var bodyRequest = new VaivDTO
             {
-                username = this.Username,
-                password = this.Password,
+                username = Username,
+                password = Password,
                 computerId = realComputerId
             };
-            var responseVaiv = await VaivService.Instance.LoginAsync(bodyRequest);
-            if (responseVaiv != null)
+            var resultVaiv = await VaivService.Instance.LoginAsync(bodyRequest);
+            if (resultVaiv != null)
             {
-                MainWindows wn = new MainWindows();
-                wn.Show();
-                Application.Current.Windows[0].Close();
+                resultVaiv.Expried = DateTime.Now.AddSeconds(resultVaiv.expires_in);
+
+                Log.Information("ResponseVaiv Login Success :" + resultVaiv.Expried);
+
+                TokenRespositories.Instance.SaveToken(resultVaiv);
+                LoginSucess?.Invoke();
             }
             else
             {
