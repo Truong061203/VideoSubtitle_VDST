@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using VDST.Repositories;
 
 namespace VDST.Sevices
 {
@@ -58,10 +59,11 @@ namespace VDST.Sevices
             {
                 var responseContent = await response.Content.ReadAsStringAsync();
                 var vaivResponse = JsonConvert.DeserializeObject<DTOs.VaivResponseDTO>(responseContent);
-
                 Log.Information("Vaiv Response Convert : " + vaivResponse);
 
                 SetAuthenticationToken(vaivResponse.access_token);
+                TokenRespositories.Instance.SaveToken(vaivResponse);
+
                 return vaivResponse;
             }
 

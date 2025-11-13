@@ -77,11 +77,13 @@ namespace VDST.ViewModel.UserControlVM
 
         private async void OnLogin(object obj)
         {
+
+            var realComputerId = Utils.ComputerInfo.GetComputerId();
             var bodyRequest = new VaivDTO
             {
                 username = this.Username,
                 password = this.Password,
-                computerId = SettingApps.Instance.ComputerId
+                computerId = realComputerId
             };
             var responseVaiv = await VaivService.Instance.LoginAsync(bodyRequest);
             if (responseVaiv != null)

@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace VDST.Sevices.DTOs
 {
-  public  class VaivDTO
-    { 
-        public string username { get; set; } 
-        public string password { get; set; } 
+    public class VaivDTO
+    {
+        public string username { get; set; }
+        public string password { get; set; }
         public string computerId { get; set; }
-    } 
+    }
+
     public class VaivResponseDTO
     {
         public string access_token { get; set; }

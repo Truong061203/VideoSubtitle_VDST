@@ -14,22 +14,23 @@ namespace VDST.Utils
     {
 
         // Hàm chính mà "Quản lý" (SettingApp) sẽ gọi
-        // Chúng ta sẽ lấy mã UUID (Mã hệ thống)
+        // lấy mã UUID (Mã hệ thống)
 
         public static string GetComputerId(string prefix = "")
         {
-            // Ghép 3 mã và băm (hash)
             return prefix + GetHash("CPU >> " + CpuId() + "\nBIOS >> " + BiosId() + "\nBASE >> " + BaseId());
         }
 
-        
-        
+        public static string GenerateComputerId(string prefix)
+        {
+            return prefix + GetHash("CPU >> " + CpuId() + "\nBIOS >> " + BiosId() + "\nBASE >> " + BaseId() + $">> {DateTime.Now}");
+        }
+
         private static string GetHash(string s)
         {
             return GetHexString(new MD5CryptoServiceProvider().ComputeHash(new ASCIIEncoding().GetBytes(s)));
         }
 
-     
         private static string GetHexString(byte[] bt)
         {
             string text = string.Empty;
@@ -45,29 +46,33 @@ namespace VDST.Utils
                     text += "-";
                 }
             }
+
             return text;
         }
 
-
-        //
         private static string Identifier(string wmiClass, string wmiProperty)
         {
             string text = "";
-            try
+            foreach (ManagementObject instance in new ManagementClass(wmiClass).GetInstances().Cast<ManagementObject>())
             {
-                ManagementObjectSearcher searcher = new ManagementObjectSearcher($"SELECT {wmiProperty} FROM {wmiClass}");
-                foreach (ManagementObject instance in searcher.Get().OfType<ManagementObject>())
+                if (text == "")
                 {
-                    text = instance[wmiProperty]?.ToString();
-                    if (!string.IsNullOrEmpty(text))
-                        break;
+                    try
+                    {
+                        text = instance[wmiProperty]?.ToString();
+                    }
+                    catch
+                    {
+                        continue;
+                    }
+
+                    break;
                 }
             }
-            catch { /* Bỏ qua lỗi */ }
-            return text ?? "";
+
+            return text;
         }
 
-        //
         private static string CpuId()
         {
             string text = Identifier("Win32_Processor", "UniqueId");
@@ -76,29 +81,28 @@ namespace VDST.Utils
                 text = Identifier("Win32_Processor", "ProcessorId");
                 if (text == "")
                 {
-                    text = Identifier("Win32_Processor", "Name"); // Lấy Tên CPU
-                    if (text == "")
-                        text = Identifier("Win32_Processor", "Manufacturer");
-                    text += Identifier("Win32_Processor", "MaxClockSpeed"); // Lấy tốc độ
+                    string text2 = Identifier("Win32_Processor", "Name");
+                    if (text2 == "")
+                    {
+                        text2 = Identifier("Win32_Processor", "Manufacturer");
+                    }
+
+                    text = text2 + Identifier("Win32_Processor", "MaxClockSpeed");
                 }
             }
+
             return text;
         }
 
-        //
         private static string BiosId()
         {
-            return Identifier("Win32_BIOS", "Manufacturer") +
-                   Identifier("Win32_BIOS", "SMBIOSBIOSVersion") +
-                   Identifier("Win32_BIOS", "SerialNumber");
+            return Identifier("Win32_BIOS", "Manufacturer") + Identifier("Win32_BIOS", "SMBIOSBIOSVersion") + Identifier("Win32_BIOS", "IdentificationCode") + Identifier("Win32_BIOS", "SerialNumber") + Identifier("Win32_BIOS", "ReleaseDate") + Identifier("Win32_BIOS", "Version");
         }
 
-        //
         private static string BaseId()
         {
-            return Identifier("Win32_BaseBoard", "Model") +
-                   Identifier("Win32_BaseBoard", "Manufacturer") +
-                   Identifier("Win32_BaseBoard", "SerialNumber");
+            return Identifier("Win32_BaseBoard", "Model") + Identifier("Win32_BaseBoard", "Manufacturer") + Identifier("Win32_BaseBoard", "Name") + Identifier("Win32_BaseBoard", "SerialNumber");
         }
+
     }
 }

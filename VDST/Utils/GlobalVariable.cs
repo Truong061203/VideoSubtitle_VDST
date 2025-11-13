@@ -29,7 +29,8 @@ namespace VDST.Utils
             }
         }
         public string APP_SETTING_FOLER { get; set; }
-        public string Path_Save_App_Setting { get; set; }
+        public string Path_Save_ComputerId { get; set; }
+        public string Path_Save_Token { get; set; }
 
         public GlobalVariable()
         {
@@ -38,7 +39,6 @@ namespace VDST.Utils
         }
         public void Loaded()
         {
-            // C:\Users\<TênBạn>\AppData\Roaming
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
             APP_SETTING_FOLER = Path.Combine(appData, "VDST");
             Log.Information("APP_SETTING_FOLER :" + APP_SETTING_FOLER);
@@ -46,10 +46,12 @@ namespace VDST.Utils
             {
                 Directory.CreateDirectory(APP_SETTING_FOLER);
             }
-            Path_Save_App_Setting = Path.Combine(APP_SETTING_FOLER, "ComputerId.json");
-            Log.Information("Path_setting_folder :" + Path_Save_App_Setting);
+            Path_Save_ComputerId = Path.Combine(APP_SETTING_FOLER, "ComputerId.json");
+
+            Path_Save_Token = Path.Combine(APP_SETTING_FOLER, "token.VDST");
 
         }
+
 
 
     }

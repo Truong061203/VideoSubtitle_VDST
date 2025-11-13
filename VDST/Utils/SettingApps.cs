@@ -56,7 +56,8 @@ namespace VDST.Utils
                     Log.Information("Loading Setting App Json: " + json);
                     // chuyển json thành object SettingApps
                     var model = JsonConvert.DeserializeObject<SettingApps>(json);
-                    Log.Information("Convert Object :"+model.ComputerId);
+                    Log.Information("Convert Object :" + model.ComputerId);
+
                     if (model != null)
                     {
                         ComputerId = model.ComputerId;
