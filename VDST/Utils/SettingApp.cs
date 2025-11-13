@@ -11,23 +11,23 @@ using VDST.ViewModel;
 
 namespace VDST.Utils
 {
-    public class SettingApps : ViewModelBase
+    public class SettingApp : ViewModelBase
     {
-        private static SettingApps _instance;
-        public static SettingApps Instance
+        private static SettingApp _instance;
+        public static SettingApp Instance
         {
             get
             {
                 if (_instance == null)
                 {
-                    _instance = new SettingApps();
+                    _instance = new SettingApp();
                 }
                 return _instance;
             }
 
         }
 
-        private SettingApps()
+        private SettingApp()
         {
         }
 
@@ -44,10 +44,26 @@ namespace VDST.Utils
             }
         }
 
+        private string _keyEncryptAES;
+        public string KeyEncryptAES
+        {
+            get => _keyEncryptAES;
+            set
+            {
+                if (_keyEncryptAES != value)
+                {
+                    _keyEncryptAES = value;
+                    // Nhớ dùng hàm RaisePropertyChanged hoặc OnPropertyChanged của bạn
+                    RaisePropertyChanged(nameof(KeyEncryptAES));
+                }
+            }
+        }
         public void OnLoadFile(string path)
         {
             try
             {
+               
+
                 //có rồi thì đọc file và load lên object
                 if (File.Exists(path))
                 {
@@ -55,7 +71,7 @@ namespace VDST.Utils
                     var json = File.ReadAllText(path);
                     Log.Information("Loading Setting App Json: " + json);
                     // chuyển json thành object SettingApps
-                    var model = JsonConvert.DeserializeObject<SettingApps>(json);
+                    var model = JsonConvert.DeserializeObject<SettingApp>(json);
                     Log.Information("Convert Object :" + model.ComputerId);
 
                     if (model != null)

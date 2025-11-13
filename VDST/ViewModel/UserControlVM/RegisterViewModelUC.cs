@@ -34,7 +34,7 @@ namespace VDST.ViewModel.UserControlVM
         public void Init_Data()
         {
             BackToLoginCommand = new Commands.VfxCommand(OnBackToLogin, () => true);
-            ComputerId = SettingApps.Instance.ComputerId;
+            ComputerId = SettingApp.Instance.ComputerId;
         }
 
         private void OnBackToLogin(object obj)

@@ -31,10 +31,10 @@ namespace VDST.Utils
         public string APP_SETTING_FOLER { get; set; }
         public string Path_Save_ComputerId { get; set; }
         public string Path_Save_Token { get; set; }
+        public string Path_Save_Credential { get; set; }
 
         public GlobalVariable()
         {
-
             Loaded();
         }
         public void Loaded()
@@ -48,7 +48,8 @@ namespace VDST.Utils
             }
             Path_Save_ComputerId = Path.Combine(APP_SETTING_FOLER, "ComputerId.json");
 
-            Path_Save_Token = Path.Combine(APP_SETTING_FOLER, "token.VDST");
+            Path_Save_Token = Path.Combine(APP_SETTING_FOLER, "token.VDST"); 
+            Path_Save_Credential = Path.Combine(APP_SETTING_FOLER, "Credential.VDST"); 
 
         }
 
