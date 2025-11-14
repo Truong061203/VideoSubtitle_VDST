@@ -8,7 +8,7 @@ using VDST.ViewModel;
 
 namespace VDST.Repositories
 {
-   
+
     public class TokenRespositories : ViewModelBase
     {
         private static TokenRespositories _instance;
@@ -86,10 +86,15 @@ namespace VDST.Repositories
         /// Save Credential User and Password
         /// </summary>
         /// <param name="credential"></param>
-        public void SaveCredential(VaivDTO credential)
+        public void SaveCredential(string _username, string _password)
         {
             // chuyển đổi đối tượng thành chuỗi JSON
-            var jsonCredential = JsonConvert.SerializeObject(credential);
+            var userSave = new VaivDTO
+            {
+                username = _username,
+                password = _password
+            };
+            var jsonCredential = JsonConvert.SerializeObject(userSave);
             Log.Information("Save Credential Json: " + jsonCredential);
 
             // mã hoá và lưu tk mk xuông file
@@ -116,12 +121,19 @@ namespace VDST.Repositories
         /// <summary>
         /// Delete Token and Credential File
         /// </summary>
-        public void DeleteToken()
+        public void ClearAll()
         {
             if (File.Exists(_pathToken))
                 File.Delete(_pathToken);
+
             if (File.Exists(_credentialPath))
                 File.Delete(_credentialPath);
         }
+        public void ClearCrendential()
+        {
+            if (File.Exists(_credentialPath))
+                File.Delete(_credentialPath);
+        }
+
     }
 }

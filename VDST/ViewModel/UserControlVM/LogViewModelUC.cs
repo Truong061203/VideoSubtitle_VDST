@@ -46,6 +46,20 @@ namespace VDST.ViewModel.UserControlVM
 
             }
         }
+
+        private bool _isRememberMe;
+        public bool IsRememberMe
+        {
+            get { return _isRememberMe; }
+            set
+            {
+                _isRememberMe = value;
+                Log.Information("IsRememberMe changed to: " + value);
+                RaisePropertyChanged(nameof(IsRememberMe));
+            }
+        }
+
+
         public event Action RegisterRequested;
 
         public event Action LoginSucess;
@@ -65,11 +79,17 @@ namespace VDST.ViewModel.UserControlVM
         }
         private void LoadCredential()
         {
+            // check saved credential
             var credential = TokenRespositories.Instance.LoadCredential();
             if (credential != null)
             {
                 Username = credential.username;
                 Password = credential.password;
+                IsRememberMe = true;
+            }
+            else
+            {
+                IsRememberMe = false;
             }
         }
 
@@ -107,7 +127,23 @@ namespace VDST.ViewModel.UserControlVM
                 Log.Information("ResponseVaiv Login Success :" + resultVaiv.Expried);
 
                 TokenRespositories.Instance.SaveToken(resultVaiv);
-                LoginSucess?.Invoke();
+
+                if (IsRememberMe)
+                {
+                    TokenRespositories.Instance.SaveCredential(Username, Password);
+                }
+                else
+                {
+                    TokenRespositories.Instance.ClearCrendential();
+                }
+
+                if (obj is Window window)
+                {
+                    MainWindows mainWindowsView = new MainWindows();
+                    mainWindowsView.Show();
+                    window.Close();
+
+                }
             }
             else
             {

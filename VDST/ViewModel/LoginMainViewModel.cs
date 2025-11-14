@@ -39,31 +39,14 @@ namespace VDST.ViewModel
         }
         public void Init_Data()
         {
-            var token = TokenRespositories.Instance.LoadToken();
-            if (token != null && !string.IsNullOrEmpty(token.access_token))
-            {
-                OpenMainWindow();
-            }
-            else
-            {
                 _logUC = new LogViewModelUC();
                 _registerUC = new RegisterViewModelUC();
                 _logUC.RegisterRequested += ShowRegisterView;
                 _registerUC.BackToLoginRequested += ShowLoginView;
                 _CurrentView = _logUC;
-
-            }
-
         }
 
-
-
-        private void OpenMainWindow()
-        {
-            MainWindows mainWindows = new MainWindows();
-            mainWindows.Show();
-            RequestClose?.Invoke();
-        }
+   
 
         public void ShowLoginView()
         {

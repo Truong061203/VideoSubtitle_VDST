@@ -9,5 +9,6 @@ namespace VDST.Model.Interfaces
     public interface IViewModel
     {
         void Init_Data();
+
     }
 }

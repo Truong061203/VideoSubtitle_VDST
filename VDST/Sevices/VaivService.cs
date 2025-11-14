@@ -62,7 +62,7 @@ namespace VDST.Sevices
                 Log.Information("Vaiv Response Convert : " + vaivResponse);
 
                 SetAuthenticationToken(vaivResponse.access_token);
-                TokenRespositories.Instance.SaveToken(vaivResponse);
+
 
                 return vaivResponse;
             }

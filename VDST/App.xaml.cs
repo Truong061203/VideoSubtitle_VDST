@@ -3,7 +3,11 @@ using Serilog.Core;
 using System.Configuration;
 using System.Data;
 using System.Windows;
+using VDST.Repositories;
+using VDST.Sevices;
 using VDST.Utils;
+using VDST.View;
+using VDST.View.Windows;
 
 namespace VDST
 {
@@ -27,11 +31,28 @@ namespace VDST
             var configPath = GlobalVariable.Instance.Path_Save_ComputerId;
 
             SettingApp.Instance.LoadFileC(configPath);
+            OnLoading();
+        }
+        public void OnLoading()
+        {
+            var token = TokenRespositories.Instance.LoadToken();
+
+            // Kiểm tra: Có token VÀ Còn hạn không?
+            if (token != null && !string.IsNullOrEmpty(token.access_token) && token.Expried > DateTime.Now)
+            {
+                var mainWindow = new MainWindows();
+                mainWindow.Show();
+            }
+            else
+            {
+                LoginWindow loginWindow = new LoginWindow();
+                loginWindow.Show();
+            }
         }
 
 
-     
-      
+
+
     }
 
 }

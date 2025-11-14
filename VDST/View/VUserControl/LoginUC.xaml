@@ -114,6 +114,13 @@
                         <Grid>
                             <uc:PasswordUC Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </Grid>
+
+                        <CheckBox HorizontalAlignment="Left"
+                            Margin="5 10"
+                            IsChecked="{Binding IsRememberMe, Mode=TwoWay}"
+                            Content="Remember me">
+
+                        </CheckBox>
                     </StackPanel>
                 </Grid>
 

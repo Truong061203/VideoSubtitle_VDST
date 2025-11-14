@@ -32,6 +32,7 @@ namespace VDST.Utils
 
         private SettingApp()
         {
+
         }
 
 
@@ -56,7 +57,7 @@ namespace VDST.Utils
                 if (_keyEncryptAES != value)
                 {
                     _keyEncryptAES = value;
-                    // Nhớ dùng hàm RaisePropertyChanged hoặc OnPropertyChanged của bạn
+                    Log.Information("KeyEncryptAES changed to: " + value);
                     RaisePropertyChanged(nameof(KeyEncryptAES));
                 }
             }
