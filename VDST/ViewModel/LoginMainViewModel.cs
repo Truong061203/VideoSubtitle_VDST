@@ -17,7 +17,6 @@ namespace VDST.ViewModel
 {
     public class LoginMainViewModel : ViewModelBase, IViewModel
     {
-        public event Action RequestClose;
 
         private object _CurrentView;
         public object CurrentViewModel
@@ -39,15 +38,13 @@ namespace VDST.ViewModel
         }
         public void Init_Data()
         {
-                _logUC = new LogViewModelUC();
-                _registerUC = new RegisterViewModelUC();
-                _logUC.RegisterRequested += ShowRegisterView;
-                _registerUC.BackToLoginRequested += ShowLoginView;
-                _CurrentView = _logUC;
+            _logUC = new LogViewModelUC();
+            _registerUC = new RegisterViewModelUC();
+            _logUC.RegisterRequested += ShowRegisterView;
+            _registerUC.BackToLoginRequested += ShowLoginView;
+            _CurrentView = _logUC;
         }
-
-   
-
+        
         public void ShowLoginView()
         {
             CurrentViewModel = _logUC;

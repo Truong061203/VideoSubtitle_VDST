@@ -2,9 +2,9 @@
 using Serilog.Core;
 using System.Configuration;
 using System.Data;
+using System.Threading.Tasks;
 using System.Windows;
 using VDST.Repositories;
-using VDST.Sevices;
 using VDST.Utils;
 using VDST.View;
 using VDST.View.Windows;
@@ -16,7 +16,7 @@ namespace VDST
     /// </summary>
     public partial class App : Application
     {
-        protected override void OnStartup(StartupEventArgs e)
+        protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
             Log.Logger = new LoggerConfiguration()
@@ -29,9 +29,10 @@ namespace VDST
             //--------------------------------------------------------------
 
             var configPath = GlobalVariable.Instance.Path_Save_ComputerId;
-
             SettingApp.Instance.LoadFileC(configPath);
             OnLoading();
+
+
         }
         public void OnLoading()
         {
@@ -40,8 +41,8 @@ namespace VDST
             // Kiểm tra: Có token VÀ Còn hạn không?
             if (token != null && !string.IsNullOrEmpty(token.access_token) && token.Expried > DateTime.Now)
             {
-                var mainWindow = new MainWindows();
-                mainWindow.Show();
+                NewProjectConfiguration newProjectConfiguration = new NewProjectConfiguration();
+                newProjectConfiguration.ShowDialog();
             }
             else
             {

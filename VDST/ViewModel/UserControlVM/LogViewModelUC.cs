@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,14 +7,14 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using VDST.Commands;
-using Serilog;
 using VDST.Model.Interfaces;
-using VDST.View.VUserControl;
+using VDST.Repositories;
 using VDST.Sevices;
 using VDST.Sevices.DTOs;
 using VDST.Utils;
 using VDST.View;
-using VDST.Repositories;
+using VDST.View.VUserControl;
+using VDST.View.Windows;
 
 namespace VDST.ViewModel.UserControlVM
 {
@@ -112,7 +113,7 @@ namespace VDST.ViewModel.UserControlVM
         private async void OnLogin(object obj)
         {
 
-            var realComputerId = Utils.ComputerInfo.GetComputerId();
+            var realComputerId = Utils.SettingApp.Instance.ComputerId;
             var bodyRequest = new VaivDTO
             {
                 username = Username,
@@ -122,28 +123,32 @@ namespace VDST.ViewModel.UserControlVM
             var resultVaiv = await VaivService.Instance.LoginAsync(bodyRequest);
             if (resultVaiv != null)
             {
+                // gán time hết hạn của tk cho 1 biến khai báo 
                 resultVaiv.Expried = DateTime.Now.AddSeconds(resultVaiv.expires_in);
 
                 Log.Information("ResponseVaiv Login Success :" + resultVaiv.Expried);
 
-                TokenRespositories.Instance.SaveToken(resultVaiv);
+                await Task.Run(() =>
+                {
+                    TokenRespositories.Instance.SaveToken(resultVaiv);
 
-                if (IsRememberMe)
-                {
-                    TokenRespositories.Instance.SaveCredential(Username, Password);
-                }
-                else
-                {
-                    TokenRespositories.Instance.ClearCrendential();
-                }
+                    if (IsRememberMe)
+                    {
+                        TokenRespositories.Instance.SaveCredential(Username, Password);
+                    }
+                    else
+                    {
+                        TokenRespositories.Instance.ClearCrendential();
+                    }
+                });
 
                 if (obj is Window window)
                 {
-                    MainWindows mainWindowsView = new MainWindows();
-                    mainWindowsView.Show();
+                    NewProjectConfiguration newProjectConfiguration = new NewProjectConfiguration();
+                    newProjectConfiguration.ShowDialog();
                     window.Close();
-
                 }
+
             }
             else
             {

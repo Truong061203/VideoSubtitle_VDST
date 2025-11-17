@@ -10,6 +10,7 @@
     xmlns:vm="clr-namespace:VDST.ViewModel.UserControlVM"
     d:DesignHeight="550"
     d:DesignWidth="500"
+    x:Name="root"
     Background="Transparent"
     mc:Ignorable="d">
 
@@ -131,7 +132,7 @@
                             Margin="10,30,10,30"
                             VerticalAlignment="Center"
                             Command="{Binding LoginCommand}"
-                            CommandParameter="{Binding ElementName=_this}"
+                            CommandParameter="{Binding ElementName=root}"
                             Content="Login"
                             FontSize="18"
                             Style="{StaticResource BaseButtonLogin}" />

@@ -10,11 +10,13 @@ using XSystem.Security.Cryptography;
 
 namespace VDST.Utils
 {
+
     public class ComputerInfo
     {
 
         // Hàm chính mà "Quản lý" (SettingApp) sẽ gọi
         // lấy mã UUID (Mã hệ thống)
+        // CPU, Mainboard, BIOS.
 
         public static string GetComputerId(string prefix = "")
         {

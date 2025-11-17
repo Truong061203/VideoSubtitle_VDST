@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,20 +14,21 @@ namespace VDST.Utils
         // 1. Lấy khóa động từ Mã máy (Đã tích hợp trong file này để tiện dùng)
         private static string GetMyKey()
         {
-            string machineId = ComputerInfo.GetComputerId();
-            string secret = SettingApp.Instance.KeyEncryptAES ?? "VDST_Default";
+            string machineId = SettingApp.Instance.ComputerId;
+            string secret = SettingApp.Instance.KeyEncryptAES;
             return machineId + "_" + secret;
         }
 
-       /// <summary>
-       /// Mã Hoá 
-       /// </summary>
+        /// <summary>
+        /// Mã Hoá 
+        /// </summary>
         public static string Encrypt(string plainText)
         {
             // Tự động lấy khóa từ mã máy
             string keyString = GetMyKey();
 
-            if (string.IsNullOrEmpty(plainText)) return "";
+            if (string.IsNullOrEmpty(plainText))
+                return "";
 
             try
             {
@@ -56,7 +58,11 @@ namespace VDST.Utils
                     }
                 }
             }
-            catch { return ""; }
+            catch(Exception ex)
+            {
+                Log.Error("Encrypt Errorr"+ex);
+                return "";
+            }
         }
 
         /// <summary>
@@ -92,8 +98,9 @@ namespace VDST.Utils
                     }
                 }
             }
-            catch
+            catch(Exception ex)
             {
+                Log.Error("Decrypt Errorr" + ex);
                 return null; // Giải mã thất bại (do sai mã máy hoặc file lỗi)
             }
         }

@@ -89,17 +89,14 @@ namespace VDST.Utils
 
                 }
 
-                // nếu chưa có thì get ComputerId mới và lưu vào file 
-                if (string.IsNullOrWhiteSpace(ComputerId))
+
+                if (string.IsNullOrWhiteSpace(ComputerId) && string.IsNullOrWhiteSpace(KeyEncryptAES))
                 {
                     ComputerId = ComputerInfo.GetComputerId();
-                    isDataChanged = true;
-                }
-                if (string.IsNullOrWhiteSpace(KeyEncryptAES))
-                {
                     KeyEncryptAES = Guid.NewGuid().ToString("N");
                     isDataChanged = true;
                 }
+                
                 if (isDataChanged)
                 {
                     OnSaveFileC(path);
