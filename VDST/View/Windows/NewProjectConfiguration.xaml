@@ -14,7 +14,7 @@
     Height="720"
     AllowsTransparency="True"
     Background="Transparent"
-    FontFamily="Fonts\OpenSans_Condensed-Regular.ttf"
+    FontFamily="Fonts\Regular.ttf"
     MouseDown="Window_MouseDown"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterScreen"
@@ -24,11 +24,12 @@
         <NVM:NewProjectViewModel />
     </Window.DataContext>
     <Window.Resources>
-        <Style x:Key="tblText" TargetType="TextBlock">
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="FontWeight" Value="Medium" />
-            <Setter Property="Foreground" Value="#374151" />
 
+        <Style x:Key="tblLabel" TargetType="TextBlock">
+            <Setter Property="FontFamily" Value="Segoe UI" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="#374151" />
+            <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
     </Window.Resources>
     <Border
@@ -116,23 +117,23 @@
                 <StackPanel Width="500" HorizontalAlignment="Center">
                     <TextBlock
                         Margin="10,0"
-                        Style="{StaticResource tblText}"
+                        Style="{StaticResource tblLabel}"
                         Text="1. Tên dự án " />
                     <UC:TextBoxUC
                         Margin="10,3,0,20"
                         HintText="Nhập tên dự án ..."
-                        Text="{Binding Project.ProjectName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        Text="{Binding projectInfo.ProjectName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
                     <TextBlock
                         Margin="10,0"
-                        Style="{StaticResource tblText}"
+                        Style="{StaticResource tblLabel}"
                         Text="2. Thư mục lưu " />
                     <Grid>
                         <UC:TextBoxUC
                             Margin="10,3,0,20"
                             HintText="Đường dẫn lưu ..."
                             IsReadOnly="True"
-                            Text="{Binding Project.SaveLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            Text="{Binding projectInfo.SaveLocation, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <Button
                             Width="80"
                             Height="30"
@@ -155,31 +156,33 @@
 
                     <TextBlock
                         Margin="10,0"
-                        Style="{StaticResource tblText}"
+                        Style="{StaticResource tblLabel}"
                         Text="3. Ngôn ngữ gốc (Source) " />
                     <ComboBox
                         Height="35"
                         Margin="10,3,0,20"
-                        VerticalAlignment="Center"
+                        Padding="10,9,0,0"
                         FontSize="14"
                         FontWeight="Medium"
                         Foreground="#374151"
-                        ItemsSource="{Binding Languages}"
-                        SelectedItem="{Binding Project.SourceLang}" />
+                        ItemsSource="{Binding SourceLanguages}"
+                        SelectedItem="{Binding projectInfo.SourceLanguage}" />
 
                     <TextBlock
                         Margin="10,0"
-                        Style="{StaticResource tblText}"
+                        Style="{StaticResource tblLabel}"
                         Text="4. Ngôn ngữ dịch (Target)" />
+
                     <ComboBox
                         Height="35"
                         Margin="10,3,0,15"
-                        VerticalAlignment="Center"
+                        Padding="10,9,0,0"
                         FontSize="14"
                         FontWeight="Medium"
                         Foreground="#374151"
-                        ItemsSource="{Binding Languages}"
-                        SelectedItem="{Binding Project.TargetLang}" />
+                        ItemsSource="{Binding TargetLanguages}"
+                        SelectedItem="{Binding projectInfo.TargetLanguage}" />
+
                     <Button
                         Width="400"
                         Height="50"

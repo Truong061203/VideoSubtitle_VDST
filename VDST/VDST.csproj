@@ -10,14 +10,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Fonts\OpenSans_Condensed-Regular.ttf" />
+    <None Remove="Fonts\Regular.ttf" />
     <None Remove="Fonts\Roboto-Black.ttf" />
     <None Remove="Images\login.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Fonts\OpenSans_Condensed-Regular.ttf">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Fonts\Regular.ttf">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Fonts\Roboto-Black.ttf">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

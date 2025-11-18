@@ -1,4 +1,6 @@
 ﻿using Microsoft.Web.WebView2.Core;
+using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -12,14 +14,16 @@ using System.Windows.Input;
 using VDST.Commands;
 using VDST.Model;
 using VDST.Model.Interfaces;
+using VDST.Utils;
 using VDST.View;
 
 namespace VDST.ViewModel
 {
     public class NewProjectViewModel : ViewModelBase, IViewModel
     {
-        public ProjectInfo Project { get; set; }
-        public ObservableCollection<string> Languages { get; set; }
+        public ProjectInfo projectInfo { get; set; }
+        public ObservableCollection<LanguageOption> SourceLanguages { get; set; }
+        public ObservableCollection<LanguageOption> TargetLanguages { get; set; }
         public ICommand ChooseCommand { get; set; }
         public ICommand OkCommand { get; set; }
 
@@ -32,54 +36,115 @@ namespace VDST.ViewModel
         {
             ChooseCommand = new VfxCommand(OnChoose, () => true);
             OkCommand = new VfxCommand(OnOk, CanOk);
-            Project = new ProjectInfo();
-            Languages = new ObservableCollection<string>
+            projectInfo = new ProjectInfo();
+            SourceLanguages = new ObservableCollection<LanguageOption>
             {
-                "Auto Detect", "Vietnamese", "English", "Japanese", "Korean", "Chinese"
+
+                new LanguageOption { Code = "vi", NameLanguage = "Tiếng Việt (Vietnamese)" , IsAuto =true },
+                new LanguageOption { Code = "en", NameLanguage = "Tiếng Anh (English)" },
+                new LanguageOption { Code = "ja", NameLanguage = "Tiếng Nhật (Japanese)" },
+                new LanguageOption { Code = "ko", NameLanguage = "Tiếng Hàn (Korean)" },
             };
-            Project.SourceLang = "Auto Detect";
-            Project.TargetLang = "English";
+
+            TargetLanguages = new ObservableCollection<LanguageOption>
+            {
+                new LanguageOption { Code = "vi", NameLanguage = "Tiếng Việt (Vietnamese)" },
+                new LanguageOption { Code = "en", NameLanguage = "Tiếng Anh (English)" , IsAuto = true },
+                new LanguageOption { Code = "ja", NameLanguage = "Tiếng Nhật (Japanese)" },
+                new LanguageOption { Code = "ko", NameLanguage = "Tiếng Hàn (Korean)" },
+            };
+
+            projectInfo.SourceLanguage = SourceLanguages[0];
+            projectInfo.TargetLanguage = TargetLanguages[1];
+            projectInfo.SaveLocation = string.Empty;
+
+
+
         }
 
         private bool CanOk()
         {
-            if (string.IsNullOrEmpty(Project.ProjectName) ||
-                string.IsNullOrEmpty(Project.FolderName) ||
-                string.IsNullOrEmpty(Project.SaveLocation) ||
-                string.IsNullOrEmpty(Project.SourceLang) ||
-                string.IsNullOrEmpty(Project.TargetLang))
+            if (string.IsNullOrWhiteSpace(projectInfo.ProjectName) ||
+                string.IsNullOrWhiteSpace(projectInfo.SaveLocation))
                 return false;
+
             return true;
         }
 
         private void OnOk(object obj)
         {
-            var fullPath = Path.Combine(Project.SaveLocation, Project.FolderName);
-            if (Directory.Exists(fullPath))
+            try
             {
-                System.Windows.MessageBox.Show("Thư mục dự án đã tồn tại. Vui lòng chọn tên khác.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+
+                if (!projectInfo.SourceLanguage.IsAuto && projectInfo.TargetLanguage.Code == projectInfo.SourceLanguage.Code)
+                {
+                    System.Windows.MessageBox.Show("Ngôn ngữ đích phải khác ngôn ngữ gốc.\nVí dụ: Source = English → Target = Vietnamese.",
+                                                    "Xung đột ngôn ngữ",
+                                                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                if (!ProjectInfo.IsProjectNameValid(projectInfo.ProjectName))
+                {
+                    System.Windows.MessageBox.Show(
+                        "Tên dự án không hợp lệ.\n" +
+                        "Chỉ được dùng chữ cái không dấu (A-Z), số, khoảng trắng, _ và -.\n" +
+                        "Vui lòng không dùng tiếng Việt có dấu hoặc ký tự đặc biệt.", "Errorr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                string fullPath = projectInfo.GetFullPath();
+                if (Directory.Exists(fullPath))
+                {
+                    System.Windows.MessageBox.Show("Thư mục dự án đã tồn tại, vui lòng chọn tên khác.",
+                        "Trùng tên thư mục",
+                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                Directory.CreateDirectory(fullPath);
+                Directory.CreateDirectory(Path.Combine(fullPath, "input"));
+                Directory.CreateDirectory(Path.Combine(fullPath, "output"));
+                Directory.CreateDirectory(Path.Combine(fullPath, "audio"));
+
+                System.Windows.MessageBox.Show("Tạo dự án thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                string projectFilePath = Path.Combine(fullPath, projectInfo.FolderName + ".VDST");
+                Log.Information("Đường dẫn file dự án: {ProjectFilePath}", projectFilePath);
+
+                string jsonContent = JsonConvert.SerializeObject(projectInfo, Formatting.Indented);
+                Log.Information("Nội dung file dự án: {JsonContent}", jsonContent);
+                File.WriteAllText(projectFilePath, jsonContent);
+
+                // 5. LƯU VÀO "RECENT PROJECTS" (Dự án gần đây)
+                // Gọi Repository của Senior để lưu
+                //RecentProjectRepository.OnAddRecentPath(RecentProjectModel.Instance, projectFilePath);
+                //RecentProjectRepository.OnSave(RecentProjectModel.Instance, GlobalVariable.Instance.PATH_SAVE_RECENT_PROJECT);
+
+                if (obj is Window window)
+                {
+
+                    MainWindows main = new MainWindows();
+                    main.Show();
+                    window.Close();
+
+                }
             }
-
-            Directory.CreateDirectory(fullPath);
-
-            if (obj is Window window)
+            catch (Exception ex)
             {
-                MainWindows main = new MainWindows(); 
-                main.Show();
-                window.Close();
+                System.Windows.MessageBox.Show($"Lỗi khi tạo dự án: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
 
         private void OnChoose(object obj)
         {
-            using (var dialog = new FolderBrowserDialog())
+            using (var dialog = new System.Windows.Forms.FolderBrowserDialog())
             {
-                if (dialog.ShowDialog() == DialogResult.OK)
+                dialog.SelectedPath = projectInfo.SaveLocation;
+                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    Project.SaveLocation = dialog.SelectedPath;
-                    // Cập nhật lại trạng thái nút OK
+                    projectInfo.SaveLocation = dialog.SelectedPath;
                     (OkCommand as VfxCommand)?.RaiseCanExecuteChanged();
                 }
             }

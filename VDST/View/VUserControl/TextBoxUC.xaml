@@ -8,14 +8,18 @@
     x:Name="root"
     d:DesignHeight="40"
     d:DesignWidth="400"
+    FontFamily="Segoe UI"
     mc:Ignorable="d">
     <Grid d:Background="White">
         <TextBox
             x:Name="tbxWord"
             Height="40"
-            Padding="10"
+            Padding="12,8"
             VerticalAlignment="Center"
-            FontSize="15"
+            Background="White"
+            FontSize="14"
+            FontWeight="Normal"
+            Foreground="#111827"
             IsReadOnly="{Binding ElementName=root, Path=IsReadOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
             Text="{Binding ElementName=root, Path=Text, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
             <TextBox.Resources>
@@ -26,7 +30,7 @@
         </TextBox>
 
         <TextBlock
-            Margin="10,0"
+            Margin="12,0,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
             FontSize="14"

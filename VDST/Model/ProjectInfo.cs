@@ -1,8 +1,11 @@
-﻿using Serilog;
+﻿using AutoUpdaterDotNET;
+using Serilog;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VDST.ViewModel;
 
@@ -16,14 +19,41 @@ namespace VDST.Model
             get => _projectName;
             set
             {
-                _projectName = value; 
-                Log.Information($"ProjectName set to: {ProjectName}");
-                RaisePropertyChanged(nameof(ProjectName)); 
-                FolderName = value?.Replace(" ", "") ?? "";
+                if (_projectName != value)
+                {
+                    _projectName = value;
+                    Log.Information($"Project name changed to: {ProjectName}");
+                    RaisePropertyChanged(nameof(ProjectName));
+
+                    if (IsProjectNameValid(value))
+                    {
+                        FolderName = value.Replace(" ", "");
+                        Log.Information($"Folder name auto-generated as: {FolderName}");
+                    }
+                    else
+                    {
+                        FolderName = string.Empty;
+                        Log.Warning("Invalid project name entered; Folder name cleared.");
+                    }
+                }
             }
         }
+        public static bool IsProjectNameValid(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return false;
+            var regex = new Regex("^[A-Za-z0-9 _-]+$");
+           Log.Information($"Regex: {regex}");
 
-        // Tên thư mục sẽ tạo (Read-only hoặc auto-gen)
+            bool isValid = regex.IsMatch(name);
+            Log.Information($"Is project name '{name}' valid? {isValid}");
+            return isValid;
+        }
+
+
+        /// <summary>
+        ///  chứa tên thư mục được tạo tự động từ ProjectName, không có khoảng trắng.
+        /// </summary>
         private string _folderName;
         public string FolderName
         {
@@ -31,7 +61,7 @@ namespace VDST.Model
             set
             {
                 _folderName = value;
-                Log.Information($"FolderName set to: {FolderName}", value);
+                Log.Information($"Folder name set to: {FolderName}");
                 RaisePropertyChanged(nameof(FolderName));
             }
         }
@@ -42,35 +72,67 @@ namespace VDST.Model
             get => _saveLocation;
             set
             {
-                _saveLocation = value; 
-                Log.Information($"SaveLocation set to: {SaveLocation}", value);
+                _saveLocation = value;
+                Log.Information($"Save location set to: {SaveLocation}");
                 RaisePropertyChanged(nameof(SaveLocation));
             }
         }
 
-        private string _sourceLang;
-        public string SourceLang
+
+        private LanguageOption _sourceLanguage;
+        public LanguageOption SourceLanguage
         {
-            get => _sourceLang;
+            get => _sourceLanguage;
             set
             {
-                _sourceLang = value; 
-                Log.Information($"SourceLang set to: {SourceLang}", value);
-                RaisePropertyChanged(nameof(SourceLang));
+                _sourceLanguage = value;
+                Log.Information($"Source language set to: {SourceLanguage.NameLanguage}");
+                RaisePropertyChanged(nameof(SourceLanguage));
             }
         }
 
-        private string _targetLang;
-        public string TargetLang
+        private LanguageOption _targetLanguage;
+        public LanguageOption TargetLanguage
         {
-            get => _targetLang;
+            get => _targetLanguage;
             set
             {
-                _targetLang = value;
-                Log.Information($"TargetLang set to: {TargetLang}", value);
-                RaisePropertyChanged(nameof(TargetLang));
+                _targetLanguage = value;
+                Log.Information($"Target language set to: {TargetLanguage.NameLanguage}");
+                RaisePropertyChanged(nameof(TargetLanguage));
             }
+        }
+
+
+        public string GetFullPath()
+        {
+            if (string.IsNullOrWhiteSpace(SaveLocation) ||
+                string.IsNullOrWhiteSpace(FolderName))
+            {
+                Log.Warning("Cannot get full path: SaveLocation or FolderName is empty.");
+                return string.Empty;
+            }
+
+            string fullPath = Path.Combine(SaveLocation, FolderName);
+            Log.Information($"Full project path: {fullPath}");
+            return fullPath;
         }
     }
 }
 
+
+public class LanguageOption
+{
+    /// <summary>Mã code dùng cho API, ví dụ: "en", "vi", "auto".</summary>
+    public string Code { get; set; }
+
+    /// <summary>Tên hiển thị trên UI, ví dụ: "Tiếng Anh (English)".</summary>
+    public string NameLanguage { get; set; }
+
+    /// <summary>Có phải là lựa chọn "Auto Detect" hay không.</summary>
+    public bool IsAuto { get; set; }
+    public override string ToString()
+    {
+        return NameLanguage; // ComboBox sẽ tự dùng cái này để hiển thị
+    }
+}
