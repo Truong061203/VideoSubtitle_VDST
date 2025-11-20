@@ -37,7 +37,7 @@
     </Window.Resources>
 
     <Border
-        Background="White"
+        Background="#f8fafc"
         BorderBrush="MediumSlateBlue"
         BorderThickness="2"
         CornerRadius="15">
@@ -71,6 +71,7 @@
 
                 </StackPanel>
             </Grid>
+            
             <Grid Grid.Row="1">
                 <ContentControl Content="{Binding CurrentViewModel}" />
             </Grid>

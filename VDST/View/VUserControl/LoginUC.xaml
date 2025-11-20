@@ -8,9 +8,9 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="clr-namespace:VDST.View.VUserControl"
     xmlns:vm="clr-namespace:VDST.ViewModel.UserControlVM"
+    x:Name="root"
     d:DesignHeight="550"
     d:DesignWidth="500"
-    x:Name="root"
     Background="Transparent"
     mc:Ignorable="d">
 
@@ -116,12 +116,11 @@
                             <uc:PasswordUC Password="{Binding Password, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         </Grid>
 
-                        <CheckBox HorizontalAlignment="Left"
-                            Margin="5 10"
-                            IsChecked="{Binding IsRememberMe, Mode=TwoWay}"
-                            Content="Remember me">
-
-                        </CheckBox>
+                        <CheckBox
+                            Margin="5,10"
+                            HorizontalAlignment="Left"
+                            Content="Remember me"
+                            IsChecked="{Binding IsRememberMe, Mode=TwoWay}" />
                     </StackPanel>
                 </Grid>
 

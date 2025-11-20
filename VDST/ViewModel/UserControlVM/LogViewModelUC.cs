@@ -121,6 +121,7 @@ namespace VDST.ViewModel.UserControlVM
                 computerId = realComputerId
             };
             var resultVaiv = await VaivService.Instance.LoginAsync(bodyRequest);
+
             if (resultVaiv != null)
             {
                 // gán time hết hạn của tk cho 1 biến khai báo 

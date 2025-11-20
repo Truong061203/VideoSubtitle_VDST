@@ -10,20 +10,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Fonts\Regular.ttf" />
-    <None Remove="Fonts\Roboto-Black.ttf" />
+    <None Remove="Fonts\Inter_18pt-Regular.ttf" />
     <None Remove="Images\login.png" />
+    <None Remove="Images\youtobe.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Fonts\Regular.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Fonts\Roboto-Black.ttf">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    <Content Include="Fonts\Inter_18pt-Regular.ttf">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Images\login.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\youtobe.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Vietst.ico" />
   </ItemGroup>

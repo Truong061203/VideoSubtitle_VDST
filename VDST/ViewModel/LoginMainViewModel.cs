@@ -1,17 +1,18 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 using VDST.Commands;
-using Serilog;
 using VDST.Model.Interfaces;
-using System.Windows;
-using VDST.View.VUserControl;
-using VDST.ViewModel.UserControlVM;
 using VDST.Repositories;
 using VDST.View;
+using VDST.View.VUserControl;
+using VDST.View.Windows;
+using VDST.ViewModel.UserControlVM;
 
 namespace VDST.ViewModel
 {
@@ -36,15 +37,27 @@ namespace VDST.ViewModel
         {
             Init_Data();
         }
+
         public void Init_Data()
         {
-            _logUC = new LogViewModelUC();
-            _registerUC = new RegisterViewModelUC();
-            _logUC.RegisterRequested += ShowRegisterView;
-            _registerUC.BackToLoginRequested += ShowLoginView;
-            _CurrentView = _logUC;
+            var token = TokenRespositories.Instance.LoadToken();
+            // Kiểm tra: Có token VÀ Còn hạn không?
+            if (token != null && !string.IsNullOrEmpty(token.access_token) && token.Expried > DateTime.Now)
+            {
+                NewProjectConfiguration newProjectConfiguration = new NewProjectConfiguration();
+                newProjectConfiguration.ShowDialog();
+            }
+            else
+            {
+                _logUC = new LogViewModelUC();
+                _registerUC = new RegisterViewModelUC();
+                _logUC.RegisterRequested += ShowRegisterView;
+                _registerUC.BackToLoginRequested += ShowLoginView;
+                _CurrentView = _logUC;
+            }
         }
-        
+
+
         public void ShowLoginView()
         {
             CurrentViewModel = _logUC;

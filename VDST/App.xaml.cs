@@ -30,26 +30,10 @@ namespace VDST
 
             var configPath = GlobalVariable.Instance.Path_Save_ComputerId;
             SettingApp.Instance.LoadFileC(configPath);
-            OnLoading();
 
 
         }
-        public void OnLoading()
-        {
-            var token = TokenRespositories.Instance.LoadToken();
-
-            // Kiểm tra: Có token VÀ Còn hạn không?
-            if (token != null && !string.IsNullOrEmpty(token.access_token) && token.Expried > DateTime.Now)
-            {
-                NewProjectConfiguration newProjectConfiguration = new NewProjectConfiguration();
-                newProjectConfiguration.ShowDialog();
-            }
-            else
-            {
-                LoginWindow loginWindow = new LoginWindow();
-                loginWindow.Show();
-            }
-        }
+     
 
 
 

@@ -76,7 +76,7 @@ namespace VDST.Repositories
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Load Token Error: " + ex.Message);
+                Log.Information("Load Token Error: " + ex.Message);
                 return null;
             }
         }
@@ -101,6 +101,8 @@ namespace VDST.Repositories
             string encrypted = SecurityHelper.Encrypt(jsonCredential);
             File.WriteAllText(_credentialPath, encrypted);
         }
+
+
 
         /// <summary>
         /// Read Credential User and Password

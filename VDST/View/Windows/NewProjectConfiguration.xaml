@@ -27,9 +27,8 @@
 
         <Style x:Key="tblLabel" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Segoe UI" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Foreground" Value="#374151" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="FontWeight" Value="DemiBold" />
         </Style>
     </Window.Resources>
     <Border

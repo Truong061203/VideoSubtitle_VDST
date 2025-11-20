@@ -22,6 +22,7 @@ namespace VDST.ViewModel
     public class NewProjectViewModel : ViewModelBase, IViewModel
     {
         public ProjectInfo projectInfo { get; set; }
+        public string CreatedProjectPath { get; private set; } // Thêm thuộc tính này
         public ObservableCollection<LanguageOption> SourceLanguages { get; set; }
         public ObservableCollection<LanguageOption> TargetLanguages { get; set; }
         public ICommand ChooseCommand { get; set; }
@@ -58,8 +59,6 @@ namespace VDST.ViewModel
             projectInfo.TargetLanguage = TargetLanguages[1];
             projectInfo.SaveLocation = string.Empty;
 
-
-
         }
 
         private bool CanOk()
@@ -76,7 +75,7 @@ namespace VDST.ViewModel
             try
             {
 
-                if (!projectInfo.SourceLanguage.IsAuto && projectInfo.TargetLanguage.Code == projectInfo.SourceLanguage.Code)
+                if (projectInfo.SourceLanguage.IsAuto = false && projectInfo.TargetLanguage.Code == projectInfo.SourceLanguage.Code)
                 {
                     System.Windows.MessageBox.Show("Ngôn ngữ đích phải khác ngôn ngữ gốc.\nVí dụ: Source = English → Target = Vietnamese.",
                                                     "Xung đột ngôn ngữ",
@@ -97,8 +96,8 @@ namespace VDST.ViewModel
                 if (Directory.Exists(fullPath))
                 {
                     System.Windows.MessageBox.Show("Thư mục dự án đã tồn tại, vui lòng chọn tên khác.",
-                        "Trùng tên thư mục",
-                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                                                   "Trùng tên thư mục",
+                                                    MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -124,8 +123,8 @@ namespace VDST.ViewModel
                 if (obj is Window window)
                 {
 
-                    MainWindows main = new MainWindows();
-                    main.Show();
+                  
+                    window.DialogResult = true;
                     window.Close();
 
                 }

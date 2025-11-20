@@ -13,11 +13,11 @@
     <Grid d:Background="White">
         <TextBox
             x:Name="tbxWord"
-            Height="40"
+            MinHeight="40"
             Padding="12,8"
-            VerticalAlignment="Center"
+            VerticalAlignment="Stretch"
+            VerticalContentAlignment="Center"
             Background="White"
-            FontSize="14"
             FontWeight="Normal"
             Foreground="#111827"
             IsReadOnly="{Binding ElementName=root, Path=IsReadOnly, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
@@ -33,7 +33,6 @@
             Margin="12,0,0,0"
             HorizontalAlignment="Left"
             VerticalAlignment="Center"
-            FontSize="14"
             FontStyle="Italic"
             Foreground="Gray"
             IsHitTestVisible="False"
