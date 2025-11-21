@@ -14,12 +14,15 @@ using System.Windows.Input;
 using VDST.Commands;
 using VDST.Model;
 using VDST.Model.Interfaces;
+using VDST.Repositories;
 using VDST.Utils;
 using VDST.View;
+using VDST.View.Windows;
+using Xceed.Wpf.Toolkit;
 
 namespace VDST.ViewModel
 {
-    public class NewProjectViewModel : ViewModelBase, IViewModel
+    public class ProjectConfigViewModel : ViewModelBase, IViewModel
     {
         public ProjectInfo projectInfo { get; set; }
         public string CreatedProjectPath { get; private set; } // Thêm thuộc tính này
@@ -29,7 +32,7 @@ namespace VDST.ViewModel
         public ICommand OkCommand { get; set; }
 
 
-        public NewProjectViewModel()
+        public ProjectConfigViewModel()
         {
             Init_Data();
         }
@@ -57,10 +60,20 @@ namespace VDST.ViewModel
 
             projectInfo.SourceLanguage = SourceLanguages[0];
             projectInfo.TargetLanguage = TargetLanguages[1];
-            projectInfo.SaveLocation = string.Empty;
 
         }
 
+
+        // Hàm này được gọi khi bấm nút "Tạo Dự Án Mới" ở màn hình chào
+        public void OnUploadVideo(string pathVDST)
+        {
+            var uploadWindow = new UpLoadVideo();
+            var uploadVM = new VideoYouTubeVM();
+            uploadVM.LoadProjectData(pathVDST);
+            uploadWindow.DataContext = uploadVM;
+            uploadWindow.ShowDialog();
+
+        }
         private bool CanOk()
         {
             if (string.IsNullOrWhiteSpace(projectInfo.ProjectName) ||
@@ -74,6 +87,14 @@ namespace VDST.ViewModel
         {
             try
             {
+                var result = System.Windows.MessageBox.Show("Bạn có muốn tạo dự án với: \n Tên : " + projectInfo.ProjectName
+                                                            + $"\n Ngôn Ngữ Gốc : {projectInfo.SourceLanguage}"
+                                                            + $"\n Ngôn Dịch : {projectInfo.TargetLanguage}"
+                                                            , "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question);
+                if (result != MessageBoxResult.Yes)
+                {
+                    return; // Người dùng chọn No, thoát hàm
+                }
 
                 if (projectInfo.SourceLanguage.IsAuto = false && projectInfo.TargetLanguage.Code == projectInfo.SourceLanguage.Code)
                 {
@@ -85,49 +106,39 @@ namespace VDST.ViewModel
 
                 if (!ProjectInfo.IsProjectNameValid(projectInfo.ProjectName))
                 {
-                    System.Windows.MessageBox.Show(
-                        "Tên dự án không hợp lệ.\n" +
-                        "Chỉ được dùng chữ cái không dấu (A-Z), số, khoảng trắng, _ và -.\n" +
-                        "Vui lòng không dùng tiếng Việt có dấu hoặc ký tự đặc biệt.", "Errorr", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    System.Windows.MessageBox.Show("Tên dự án không hợp lệ (Không dấu, không ký tự đặc biệt)!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
                 string fullPath = projectInfo.GetFullPath();
                 if (Directory.Exists(fullPath))
                 {
-                    System.Windows.MessageBox.Show("Thư mục dự án đã tồn tại, vui lòng chọn tên khác.",
-                                                   "Trùng tên thư mục",
-                                                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                    System.Windows.MessageBox.Show("Thư mục dự án đã tồn tại!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                Directory.CreateDirectory(fullPath);
-                Directory.CreateDirectory(Path.Combine(fullPath, "input"));
-                Directory.CreateDirectory(Path.Combine(fullPath, "output"));
-                Directory.CreateDirectory(Path.Combine(fullPath, "audio"));
-
-                System.Windows.MessageBox.Show("Tạo dự án thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-
                 string projectFilePath = Path.Combine(fullPath, projectInfo.FolderName + ".VDST");
-                Log.Information("Đường dẫn file dự án: {ProjectFilePath}", projectFilePath);
+                Log.Information("Tạo dự án mới tại: {ProjectFilePath}", projectFilePath);
 
-                string jsonContent = JsonConvert.SerializeObject(projectInfo, Formatting.Indented);
-                Log.Information("Nội dung file dự án: {JsonContent}", jsonContent);
-                File.WriteAllText(projectFilePath, jsonContent);
+                ProjectRepositories.Instance.CreateProjectFolder(projectInfo);
 
-                // 5. LƯU VÀO "RECENT PROJECTS" (Dự án gần đây)
-                // Gọi Repository của Senior để lưu
+                CreatedProjectPath = projectFilePath; // <-- Lưu vào biến này để trả về
+
+                // 4. CẬP NHẬT DANH SÁCH GẦN ĐÂY (RECENT)
+                // (Dùng Repository của Senior mà bạn đã có)
                 //RecentProjectRepository.OnAddRecentPath(RecentProjectModel.Instance, projectFilePath);
                 //RecentProjectRepository.OnSave(RecentProjectModel.Instance, GlobalVariable.Instance.PATH_SAVE_RECENT_PROJECT);
 
+                // 5. THÔNG BÁO VÀ ĐÓNG CỬA SỔ
+
                 if (obj is Window window)
                 {
-
-                  
-                    window.DialogResult = true;
+                    OnUploadVideo(projectFilePath);
                     window.Close();
-
                 }
+
+
+
             }
             catch (Exception ex)
             {

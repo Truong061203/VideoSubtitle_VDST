@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VDST.Commands;
 
 namespace VDST.Model.Interfaces
 {
@@ -10,5 +11,9 @@ namespace VDST.Model.Interfaces
     {
         void Init_Data();
 
+    }
+    public interface IWindowViewModel : IViewModel
+    {
+        VfxCommand CloseCommand { get; set; }
     }
 }

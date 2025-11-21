@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -24,36 +25,52 @@ namespace VDST.Repositories
             }
         }
 
-        private ProjectRepositories() 
-        { 
+        public void CreateProjectFolder(ProjectInfo project)
+        {
+            //    string workDir = project.GetFullPath();
+
+            //    // Tạo các thư mục
+            //    //Directory.CreateDirectory(workDir);
+            //    //Directory.CreateDirectory(Path.Combine(workDir, "input"));
+            //    //Directory.CreateDirectory(Path.Combine(workDir, "output"));
+            //    //Directory.CreateDirectory(Path.Combine(workDir, "audio"));
+            //    //Directory.CreateDirectory(Path.Combine(workDir, "temp"));
+
+            string workDir = project.GetFullPath();
+
+            if (!Directory.Exists(workDir))
+            {
+                Directory.CreateDirectory(workDir); // Chỉ tạo đúng 1 folder này
+            }
+
+            // 2. Tạo đường dẫn file .VDST
+            string configPath = Path.Combine(workDir, project.FolderName + ".VDST");
+
+            // 3. Lưu file
+            SaveProject(project, configPath);
+           
         }
+
+        public void SaveProject(ProjectInfo project, string path)
+        {
+            // Dùng Newtonsoft.Json để lưu toàn bộ thông tin dự án xuống file
+            var json = JsonConvert.SerializeObject(project, Formatting.Indented);
+
+            Log.Information($"Lưu dự án tại: {path}");
+            Log.Information($"Nội dung dự án:\n{json}");
+            File.WriteAllText(path, json);
+        }
+
+
 
         // LƯU DỰ ÁN
-        public void SaveProject(ProjectInfoConfig project)
-        {
-            try
-            {
-                // 1. Tạo đường dẫn file .VDST
-                // Ví dụ: D:\MyProject\Demo1\Demo1.VDST
-                string filePath = Path.Combine(project.GetFullPath(), project.FolderName + ".VDST");
 
-                // 2. Chuyển đổi sang JSON
-                string json = JsonConvert.SerializeObject(project, Formatting.Indented);
-
-                // 3. Ghi đè file cũ
-                File.WriteAllText(filePath, json);
-            }
-            catch (Exception ex)
-            {
-                // Log lỗi (hoặc throw để ViewModel xử lý)
-                throw new Exception($"Lỗi lưu dự án: {ex.Message}");
-            }
-        }
 
         // ĐỌC DỰ ÁN
-        public ProjectInfoConfig LoadProject(string filePath)
+        public ProjectInfo LoadProject(string filePath)
         {
-            if (!File.Exists(filePath)) return null;
+            if (!File.Exists(filePath))
+                return null;
 
             try
             {
@@ -61,7 +78,7 @@ namespace VDST.Repositories
                 string json = File.ReadAllText(filePath);
 
                 // 2. Chuyển đổi ngược lại thành Object
-                var project = JsonConvert.DeserializeObject<ProjectInfoConfig>(json);
+                var project = JsonConvert.DeserializeObject<ProjectInfo>(json);
                 return project;
             }
             catch (Exception ex)

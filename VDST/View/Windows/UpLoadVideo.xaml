@@ -8,7 +8,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="clr-namespace:VDST.View.VUserControl"
     x:Name="_this"
-    Title="VDST"
+    Title="{Binding Title, Mode=TwoWay}"
     Width="1280"
     Height="800"
     Background="#f8fafc"

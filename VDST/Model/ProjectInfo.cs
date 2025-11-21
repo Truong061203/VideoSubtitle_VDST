@@ -43,7 +43,7 @@ namespace VDST.Model
             if (string.IsNullOrWhiteSpace(name))
                 return false;
             var regex = new Regex("^[A-Za-z0-9 _-]+$");
-           Log.Information($"Regex: {regex}");
+            Log.Information($"Regex: {regex}");
 
             bool isValid = regex.IsMatch(name);
             Log.Information($"Is project name '{name}' valid? {isValid}");
@@ -66,7 +66,7 @@ namespace VDST.Model
             }
         }
 
-        private string _saveLocation;
+        private string _saveLocation = string.Empty;
         public string SaveLocation
         {
             get => _saveLocation;
@@ -104,6 +104,7 @@ namespace VDST.Model
         }
 
 
+        // join SaveLocatio and folderName Validate 
         public string GetFullPath()
         {
             if (string.IsNullOrWhiteSpace(SaveLocation) ||
@@ -117,13 +118,49 @@ namespace VDST.Model
             Log.Information($"Full project path: {fullPath}");
             return fullPath;
         }
+
+
+        private string _videoPath;
+        public string VideoPath
+        {
+            get => _videoPath;
+            set
+            {
+                _videoPath = value;
+                RaisePropertyChanged(nameof(VideoPath));
+            }
+        }
+
+        // Đường dẫn file Lyric (.srt)
+        private string _lyricPath;
+        public string LyricPath
+        {
+            get => _lyricPath;
+            set
+            {
+                _lyricPath = value;
+                RaisePropertyChanged(nameof(LyricPath));
+            }
+        }
+
+        // Trạng thái hiện tại (Ví dụ: "Đang tải video", "Hoàn thành")
+        private string _status = "Mới tạo";
+        public string Status
+        {
+            get => _status;
+            set
+            {
+                _status = value;
+                RaisePropertyChanged(nameof(Status));
+            }
+        }
     }
 }
 
 
 public class LanguageOption
 {
-    /// <summary>Mã code dùng cho API, ví dụ: "en", "vi", "auto".</summary>
+    /// <summary>Mã code dùng cho API, ví dụ: "en", "vi".</summary>
     public string Code { get; set; }
 
     /// <summary>Tên hiển thị trên UI, ví dụ: "Tiếng Anh (English)".</summary>
@@ -131,8 +168,9 @@ public class LanguageOption
 
     /// <summary>Có phải là lựa chọn "Auto Detect" hay không.</summary>
     public bool IsAuto { get; set; }
+
     public override string ToString()
     {
-        return NameLanguage; // ComboBox sẽ tự dùng cái này để hiển thị
+        return NameLanguage;
     }
 }

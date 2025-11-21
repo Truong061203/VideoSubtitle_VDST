@@ -23,6 +23,7 @@ namespace VDST.Repositories
                 return _instance;
             }
         }
+
         private string _pathToken { get; set; }
         private string _credentialPath { get; set; }
 
