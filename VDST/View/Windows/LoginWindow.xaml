@@ -3,7 +3,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:Icons="http://metro.mahapps.com/winfx/xaml/iconpacks"
-    xmlns:LoginVM="clr-namespace:VDST.ViewModel"
+    xmlns:LVM="clr-namespace:VDST.ViewModel"
     xmlns:VM="clr-namespace:VDST.ViewModel.UserControlVM"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:VDST.View.Windows"
@@ -21,9 +21,8 @@
     WindowStartupLocation="CenterScreen"
     WindowStyle="None"
     mc:Ignorable="d">
-
     <Window.DataContext>
-        <LoginVM:LoginMainViewModel />
+        <LVM:LoginMainViewModel />
     </Window.DataContext>
 
     <Window.Resources>
@@ -71,7 +70,7 @@
 
                 </StackPanel>
             </Grid>
-            
+
             <Grid Grid.Row="1">
                 <ContentControl Content="{Binding CurrentViewModel}" />
             </Grid>

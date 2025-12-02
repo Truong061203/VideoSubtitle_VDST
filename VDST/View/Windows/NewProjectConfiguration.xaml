@@ -21,7 +21,7 @@
     WindowStyle="None"
     mc:Ignorable="d">
     <Window.DataContext>
-        <NVM:ProjectConfigViewModel/>
+        <NVM:ProjectConfigViewModel />
     </Window.DataContext>
     <Window.Resources>
 
@@ -41,7 +41,7 @@
                 <GradientStop Offset="1" Color="#DA34AE" />
             </LinearGradientBrush>
         </Border.BorderBrush>
-        
+
         <Grid>
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />

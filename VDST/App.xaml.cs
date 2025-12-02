@@ -32,6 +32,24 @@ namespace VDST
             SettingApp.Instance.LoadFileC(configPath);
 
 
+            var token = TokenRespositories.Instance.LoadToken();
+
+            if (token != null && !string.IsNullOrEmpty(token.access_token) && token.Expried > DateTime.Now)
+            {
+             
+                var configWindow = new NewProjectConfiguration();
+                this.MainWindow = configWindow; // Đánh dấu đây là cửa sổ chính
+                configWindow.Show();
+            }
+            else
+            {
+                if (token != null) TokenRespositories.Instance.ClearCrendential();
+
+                var loginWindow = new LoginWindow();
+                this.MainWindow = loginWindow; // Đánh dấu đây là cửa sổ chính
+                loginWindow.Show();
+            }
+
         }
      
 

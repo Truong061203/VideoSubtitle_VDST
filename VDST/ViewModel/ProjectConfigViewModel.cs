@@ -24,7 +24,7 @@ namespace VDST.ViewModel
 {
     public class ProjectConfigViewModel : ViewModelBase, IViewModel
     {
-        public ProjectInfo projectInfo { get; set; }
+        public ProjectInfoModel projectInfo { get; set; }
         public string CreatedProjectPath { get; private set; } // Thêm thuộc tính này
         public ObservableCollection<LanguageOption> SourceLanguages { get; set; }
         public ObservableCollection<LanguageOption> TargetLanguages { get; set; }
@@ -40,7 +40,7 @@ namespace VDST.ViewModel
         {
             ChooseCommand = new VfxCommand(OnChoose, () => true);
             OkCommand = new VfxCommand(OnOk, CanOk);
-            projectInfo = new ProjectInfo();
+            projectInfo = new ProjectInfoModel();
             SourceLanguages = new ObservableCollection<LanguageOption>
             {
 
@@ -67,8 +67,8 @@ namespace VDST.ViewModel
         // Hàm này được gọi khi bấm nút "Tạo Dự Án Mới" ở màn hình chào
         public void OnUploadVideo(string pathVDST)
         {
-            var uploadWindow = new UpLoadVideo();
-            var uploadVM = new VideoYouTubeVM();
+            var uploadWindow = new UpLoadVideo(); 
+            var uploadVM = new UpVideoYouTubeVM();
             uploadVM.LoadProjectData(pathVDST);
             uploadWindow.DataContext = uploadVM;
             uploadWindow.ShowDialog();
@@ -79,7 +79,6 @@ namespace VDST.ViewModel
             if (string.IsNullOrWhiteSpace(projectInfo.ProjectName) ||
                 string.IsNullOrWhiteSpace(projectInfo.SaveLocation))
                 return false;
-
             return true;
         }
 
@@ -104,7 +103,7 @@ namespace VDST.ViewModel
                     return;
                 }
 
-                if (!ProjectInfo.IsProjectNameValid(projectInfo.ProjectName))
+                if (!ProjectInfoModel.IsProjectNameValid(projectInfo.ProjectName))
                 {
                     System.Windows.MessageBox.Show("Tên dự án không hợp lệ (Không dấu, không ký tự đặc biệt)!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;

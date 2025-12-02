@@ -23,9 +23,9 @@ namespace VDST.Model
     {
         public string Path { get; set; }       // Đường dẫn file .VDST
         public string Name { get; set; }       // Tên dự án
-        public DateTime LastUsed { get; set; } // Thời gian mở cuối cùng
+        //public DateTime LastUsed { get; set; } // Thời gian mở cuối cùng
 
         // (Có thể thêm các thông tin phụ để hiển thị đẹp hơn)
-        public string SizeDisplay { get; set; }
+        //public string SizeDisplay { get; set; }
     }
 }

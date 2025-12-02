@@ -25,7 +25,7 @@ namespace VDST.Repositories
             }
         }
 
-        public void CreateProjectFolder(ProjectInfo project)
+        public void CreateProjectFolder(ProjectInfoModel project)
         {
             //    string workDir = project.GetFullPath();
 
@@ -51,7 +51,7 @@ namespace VDST.Repositories
            
         }
 
-        public void SaveProject(ProjectInfo project, string path)
+        public void SaveProject(ProjectInfoModel project, string path)
         {
             // Dùng Newtonsoft.Json để lưu toàn bộ thông tin dự án xuống file
             var json = JsonConvert.SerializeObject(project, Formatting.Indented);
@@ -67,7 +67,7 @@ namespace VDST.Repositories
 
 
         // ĐỌC DỰ ÁN
-        public ProjectInfo LoadProject(string filePath)
+        public ProjectInfoModel LoadProject(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -78,7 +78,7 @@ namespace VDST.Repositories
                 string json = File.ReadAllText(filePath);
 
                 // 2. Chuyển đổi ngược lại thành Object
-                var project = JsonConvert.DeserializeObject<ProjectInfo>(json);
+                var project = JsonConvert.DeserializeObject<ProjectInfoModel>(json);
                 return project;
             }
             catch (Exception ex)

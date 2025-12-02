@@ -69,7 +69,6 @@ namespace VDST.Utils
         {
             try
             {
-                bool isDataChanged = false;
 
                 // check file tồn tại thì đọc và gán giá trị cho ComputerId và EncryptAES
                 if (File.Exists(path))
@@ -86,21 +85,14 @@ namespace VDST.Utils
                         ComputerId = model.ComputerId;
                         KeyEncryptAES = model.KeyEncryptAES;
                     }
-
                 }
-
-
                 if (string.IsNullOrWhiteSpace(ComputerId) && string.IsNullOrWhiteSpace(KeyEncryptAES))
                 {
                     ComputerId = ComputerInfo.GetComputerId();
                     KeyEncryptAES = Guid.NewGuid().ToString("N");
-                    isDataChanged = true;
-                }
-                
-                if (isDataChanged)
-                {
                     OnSaveFileC(path);
                 }
+
             }
             catch (Exception ex)
             {

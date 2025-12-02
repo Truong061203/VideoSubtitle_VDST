@@ -51,7 +51,7 @@ namespace VDST.Utils
 
             Path_Save_Token = Path.Combine(APP_SETTING_FOLER, "token.VDST");
             Path_Save_Credential = Path.Combine(APP_SETTING_FOLER, "Credential.VDST");
-            PATH_SAVE_RECENT_PROJECT = Path.Combine(APP_SETTING_FOLER, "recent_projects.json");
+            //PATH_SAVE_RECENT_PROJECT = Path.Combine(APP_SETTING_FOLER, "recent_projects.json");
         }
 
 

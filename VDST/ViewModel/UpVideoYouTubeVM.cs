@@ -13,11 +13,11 @@ using VDST.Repositories;
 
 namespace VDST.ViewModel
 {
-    public class VideoYouTubeVM : ViewModelBase
+    public class UpVideoYouTubeVM : ViewModelBase
     {
 
-        private ProjectInfo _currentProject;
-        public ProjectInfo CurrentProject
+        private ProjectInfoModel _currentProject;
+        public ProjectInfoModel CurrentProject
         {
             get => _currentProject;
             set
@@ -43,11 +43,7 @@ namespace VDST.ViewModel
 
 
 
-        //public void Init_Data()
-        //{
-        //    //SaveCommand = new VfxCommand(OnSave, () => CurrentProject != null); 
-        //    //LoadedCommand = new VfxCommand(OnLoaded, () => true);
-        //}
+
 
         private void OnLoaded(object obj)
         {
@@ -85,7 +81,6 @@ namespace VDST.ViewModel
         {
             if (CurrentProject != null)
             {
-
                 MessageBox.Show("Đã lưu dự án thành công!");
             }
         }

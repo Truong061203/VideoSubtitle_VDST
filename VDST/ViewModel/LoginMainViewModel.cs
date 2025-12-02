@@ -37,24 +37,17 @@ namespace VDST.ViewModel
         {
             Init_Data();
         }
+       
+
 
         public void Init_Data()
         {
-            var token = TokenRespositories.Instance.LoadToken();
-            // Kiểm tra: Có token VÀ Còn hạn không?
-            if (token != null && !string.IsNullOrEmpty(token.access_token) && token.Expried > DateTime.Now)
-            {
-                NewProjectConfiguration newProjectConfiguration = new NewProjectConfiguration();
-                newProjectConfiguration.ShowDialog();
-            }
-            else
-            {
+    
                 _logUC = new LogViewModelUC();
                 _registerUC = new RegisterViewModelUC();
                 _logUC.RegisterRequested += ShowRegisterView;
                 _registerUC.BackToLoginRequested += ShowLoginView;
                 _CurrentView = _logUC;
-            }
         }
 
 

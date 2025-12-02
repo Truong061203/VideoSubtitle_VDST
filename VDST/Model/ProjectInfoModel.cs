@@ -11,7 +11,7 @@ using VDST.ViewModel;
 
 namespace VDST.Model
 {
-    public class ProjectInfo : ViewModelBase
+    public class ProjectInfoModel : ViewModelBase
     {
         private string _projectName;
         public string ProjectName

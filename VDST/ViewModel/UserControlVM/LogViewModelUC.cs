@@ -143,11 +143,17 @@ namespace VDST.ViewModel.UserControlVM
                     }
                 });
 
-                if (obj is Window window)
+                if (obj is DependencyObject dependencyObject)
                 {
-                    NewProjectConfiguration newProjectConfiguration = new NewProjectConfiguration();
-                    newProjectConfiguration.ShowDialog();
-                    window.Close();
+                    Window parentWindow = Window.GetWindow(dependencyObject);
+                    if (parentWindow != null)
+                    {
+                        // 1. Mở App chính
+                        NewProjectConfiguration newProject = new NewProjectConfiguration();
+                        newProject.Show();
+
+                        parentWindow.Close();
+                    }
                 }
 
             }
