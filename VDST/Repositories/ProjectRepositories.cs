@@ -37,6 +37,7 @@ namespace VDST.Repositories
             //    //Directory.CreateDirectory(Path.Combine(workDir, "temp"));
 
             string workDir = project.GetFullPath();
+            Log.Information($"Tạo thư mục dự án tại: {workDir}");
 
             if (!Directory.Exists(workDir))
             {

@@ -25,12 +25,22 @@ namespace VDST.ViewModel
     public class ProjectConfigViewModel : ViewModelBase, IViewModel
     {
         public ProjectInfoModel projectInfo { get; set; }
-        public string CreatedProjectPath { get; private set; } // Thêm thuộc tính này
         public ObservableCollection<LanguageOption> SourceLanguages { get; set; }
         public ObservableCollection<LanguageOption> TargetLanguages { get; set; }
         public ICommand ChooseCommand { get; set; }
         public ICommand OkCommand { get; set; }
 
+        private string titleNewProject; 
+        public string TitleNewProject
+        {
+            get => titleNewProject;
+            set
+            {
+                titleNewProject = value;
+                Log.Information("Title New Project :"+titleNewProject);
+                RaisePropertyChanged(nameof(TitleNewProject));
+            }
+        }   
 
         public ProjectConfigViewModel()
         {
@@ -65,15 +75,15 @@ namespace VDST.ViewModel
 
 
         // Hàm này được gọi khi bấm nút "Tạo Dự Án Mới" ở màn hình chào
-        public void OnUploadVideo(string pathVDST)
-        {
-            var uploadWindow = new UpLoadVideo(); 
-            var uploadVM = new UpVideoYouTubeVM();
-            uploadVM.LoadProjectData(pathVDST);
-            uploadWindow.DataContext = uploadVM;
-            uploadWindow.ShowDialog();
+        //public void OnUploadVideo(string pathVDST)
+        //{
+        //    var uploadWindow = new UpLoadVideo(); 
+        //    var uploadVM = new UpVideoYouTubeVM();
+        //    uploadVM.LoadProjectData(pathVDST);
+        //    uploadWindow.DataContext = uploadVM;
+        //    uploadWindow.ShowDialog();
 
-        }
+        //}
         private bool CanOk()
         {
             if (string.IsNullOrWhiteSpace(projectInfo.ProjectName) ||
@@ -121,7 +131,7 @@ namespace VDST.ViewModel
 
                 ProjectRepositories.Instance.CreateProjectFolder(projectInfo);
 
-                CreatedProjectPath = projectFilePath; // <-- Lưu vào biến này để trả về
+                TitleNewProject = projectFilePath; // <-- Lưu vào biến này để trả về
 
                 // 4. CẬP NHẬT DANH SÁCH GẦN ĐÂY (RECENT)
                 // (Dùng Repository của Senior mà bạn đã có)
@@ -132,7 +142,7 @@ namespace VDST.ViewModel
 
                 if (obj is Window window)
                 {
-                    OnUploadVideo(projectFilePath);
+
                     window.Close();
                 }
 

@@ -23,7 +23,7 @@ namespace VDST.Repositories
             if (existingItem != null)
             {
                 // CÓ RỒI -> Chỉ cần cập nhật thời gian mới nhất
-                existingItem.LastUsed = DateTime.Now;
+                //existingItem.LastUsed = DateTime.Now;
 
                 // (Mẹo: Muốn đưa lên đầu thì xóa đi add lại hoặc sort lại sau)
                 model.Recents.Remove(existingItem);
@@ -36,7 +36,7 @@ namespace VDST.Repositories
                 {
                     Path = projectPath,
                     Name = Path.GetFileNameWithoutExtension(projectPath), // Lấy tên file làm tên dự án
-                    LastUsed = DateTime.Now
+                    //LastUsed = DateTime.Now
                 };
 
                 // Thêm vào đầu danh sách

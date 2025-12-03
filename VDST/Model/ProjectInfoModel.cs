@@ -38,6 +38,7 @@ namespace VDST.Model
                 }
             }
         }
+
         public static bool IsProjectNameValid(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -104,7 +105,7 @@ namespace VDST.Model
         }
 
 
-        // join SaveLocatio and folderName Validate 
+        // join SaveLocation and folderName Validate 
         public string GetFullPath()
         {
             if (string.IsNullOrWhiteSpace(SaveLocation) ||
@@ -130,6 +131,9 @@ namespace VDST.Model
                 RaisePropertyChanged(nameof(VideoPath));
             }
         }
+
+
+
 
         // Đường dẫn file Lyric (.srt)
         private string _lyricPath;

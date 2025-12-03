@@ -45,30 +45,13 @@ namespace VDST.ViewModel
 
 
 
-        private void OnLoaded(object obj)
-        {
-            if (obj is Window win)
-            {
-                if (win.Tag is string filePath)
-                {
-                    LoadProjectData(filePath);
-                }
-            }
-        }
 
         // Hàm này được gọi từ bên ngoài (Lúc mới mở app)
         public void LoadProjectData(string filePath)
         {
             try
             {
-                var current = ProjectRepositories.Instance.LoadProject(filePath);
-                if (current != null)
-
-                {
-                    CurrentProject = current;
-                    Title = "VDST - " + CurrentProject.ProjectName;
-
-                }
+                Title = "VDST - " + CurrentProject.ProjectName;
             }
             catch (Exception ex)
             {

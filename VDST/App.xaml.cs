@@ -43,7 +43,8 @@ namespace VDST
             }
             else
             {
-                if (token != null) TokenRespositories.Instance.ClearCrendential();
+                if (token != null) 
+               TokenRespositories.Instance.ClearCrendential();
 
                 var loginWindow = new LoginWindow();
                 this.MainWindow = loginWindow; // Đánh dấu đây là cửa sổ chính
