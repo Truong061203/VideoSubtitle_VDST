@@ -13,6 +13,7 @@ namespace VDST.Model
 {
     public class ProjectInfoModel : ViewModelBase
     {
+    
         private string _projectName;
         public string ProjectName
         {

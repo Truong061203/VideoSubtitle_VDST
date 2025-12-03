@@ -25,7 +25,7 @@ namespace VDST.Repositories
             }
         }
 
-        public void CreateProjectFolder(ProjectInfoModel project)
+        public string CreateProjectFolder(ProjectInfoModel project)
         {
             //    string workDir = project.GetFullPath();
 
@@ -37,19 +37,25 @@ namespace VDST.Repositories
             //    //Directory.CreateDirectory(Path.Combine(workDir, "temp"));
 
             string workDir = project.GetFullPath();
-            Log.Information($"Tạo thư mục dự án tại: {workDir}");
+            Log.Information("Tạo thư mục dự án tại: {WorkDir}", workDir);
 
+            // 2. Tạo thư mục (idempotent, nếu đã tồn tại cũng không lỗi) 
             if (!Directory.Exists(workDir))
             {
-                Directory.CreateDirectory(workDir); // Chỉ tạo đúng 1 folder này
+                Directory.CreateDirectory(workDir);
+                Directory.CreateDirectory(Path.Combine(workDir, "Videos"));
+                Directory.CreateDirectory(Path.Combine(workDir, "Temp"));
             }
 
-            // 2. Tạo đường dẫn file .VDST
-            string configPath = Path.Combine(workDir, project.FolderName + ".VDST");
 
-            // 3. Lưu file
-            SaveProject(project, configPath);
-           
+            // 3. Tạo đường dẫn file .VDST trong thư mục đó
+            string projectFilePath = Path.Combine(workDir, project.FolderName + ".VDST");
+
+            // 4. Lưu cấu hình dự án vào file .VDST
+            SaveProject(project, projectFilePath);
+
+            return projectFilePath;
+
         }
 
         public void SaveProject(ProjectInfoModel project, string path)

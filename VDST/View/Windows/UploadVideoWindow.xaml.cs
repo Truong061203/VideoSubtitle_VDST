@@ -15,11 +15,11 @@ using System.Windows.Shapes;
 namespace VDST.View.Windows
 {
     /// <summary>
-    /// Interaction logic for UpLoadVideo.xaml
+    /// Interaction logic for UploadVideoWindow.xaml
     /// </summary>
-    public partial class UpLoadVideo : Window
+    public partial class UploadVideoWindow : Window
     {
-        public UpLoadVideo()
+        public UploadVideoWindow()
         {
             InitializeComponent();
         }

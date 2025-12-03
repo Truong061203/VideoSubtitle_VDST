@@ -17,9 +17,9 @@ namespace VDST.View.Windows
     /// <summary>
     /// Interaction logic for NewPrjectConfiguration.xaml
     /// </summary>
-    public partial class NewProjectConfiguration : Window
+    public partial class NewProjectWindow : Window
     {
-        public NewProjectConfiguration()
+        public NewProjectWindow()
         {
             InitializeComponent();
         }

@@ -37,7 +37,7 @@ namespace VDST
             if (token != null && !string.IsNullOrEmpty(token.access_token) && token.Expried > DateTime.Now)
             {
              
-                var configWindow = new NewProjectConfiguration();
+                var configWindow = new NewProjectWindow();
                 this.MainWindow = configWindow; // Đánh dấu đây là cửa sổ chính
                 configWindow.Show();
             }

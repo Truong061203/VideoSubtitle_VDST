@@ -149,7 +149,7 @@ namespace VDST.ViewModel.UserControlVM
                     if (parentWindow != null)
                     {
                         // 1. Mở App chính
-                        NewProjectConfiguration newProject = new NewProjectConfiguration();
+                        NewProjectWindow newProject = new NewProjectWindow();
                         newProject.Show();
 
                         parentWindow.Close();
