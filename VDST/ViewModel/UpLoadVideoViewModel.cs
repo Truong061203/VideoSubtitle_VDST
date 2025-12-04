@@ -6,15 +6,17 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Input;
 using VDST.Commands;
 using VDST.Model;
 using VDST.Model.Interfaces;
 using VDST.Repositories;
+using VDST.View.Windows;
 
 namespace VDST.ViewModel
 {
-    public class UpLoadVideoViewModel : ViewModelBase 
+    public class UpLoadVideoViewModel : ViewModelBase
     {
         private ProjectInfoModel _currentProject;
 
@@ -28,7 +30,7 @@ namespace VDST.ViewModel
             }
         }
 
-        private string titleApp; 
+        private string titleApp;
         public string TitleApp
         {
             get => titleApp;
@@ -47,7 +49,10 @@ namespace VDST.ViewModel
             set
             {
                 _youtubeUrl = value;
+                Log.Information("YTB URL :"+ YoutubeUrl);
+
                 RaisePropertyChanged(nameof(YoutubeUrl));
+                (CheckUrlCommand as VfxCommand)?.RaiseCanExecuteChanged();
             }
         }
 
@@ -72,20 +77,51 @@ namespace VDST.ViewModel
                 if (project != null)
                 {
                     CurrentProject = project;
-                    TitleApp = "VDST - "+ project.ProjectName;
+                    TitleApp = "VDST " + project.ProjectName;
                     ProjectFilePath = projectFilePath; // GIỮ LUÔN ĐỂ SAU NÀY SAVE
                 }
             }
         }
 
-        private void SaveProject()
+        public ICommand CheckUrlCommand { get; set; }
+        public ICommand UploadCommand { get; set; }
+        public UpLoadVideoViewModel()
         {
-            if (CurrentProject == null || string.IsNullOrEmpty(ProjectFilePath))
-                return;
+            CheckUrlCommand = new VfxCommand(OnCheck, CanCheck);
+            UploadCommand = new VfxCommand(OnUpload, () => true);
 
-            ProjectRepositories.Instance.SaveProject(CurrentProject, ProjectFilePath);
         }
 
+        private void OnUpload(object obj)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog();
+            openFileDialog.Title = "Select Video File to Upload";
+            openFileDialog.Filter = "Video Files|*.mp4;*.mov;*.avi;*.mkv;*.flv;*.wmv|All Files|*.*";
+            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            {
+                string selectedFilePath = openFileDialog.FileName;
+                Log.Information("Selected file for upload: {SelectedFilePath}", selectedFilePath);
+            }
+        }
 
+        private bool CanCheck()
+        {
+            if (string.IsNullOrEmpty(YoutubeUrl))
+                return false;
+            return true;
+        }
+
+        private void OnCheck(object obj)
+        {
+            var ytbVM = new DownloadVideoViewModel();
+            ytbVM.Url = YoutubeUrl;
+            var ytbWindow = new DownloadVideoWindow();
+            ytbWindow.DataContext = ytbVM;
+            if (ytbWindow.ShowDialog() == true)
+            {
+                Log.Information("YouTube URL checked successfully: {YoutubeUrl}", YoutubeUrl);
+            }
+        }
     }
+
 }

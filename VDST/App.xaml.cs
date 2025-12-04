@@ -28,28 +28,28 @@ namespace VDST
 
             //--------------------------------------------------------------
 
-            var configPath = GlobalVariable.Instance.Path_Save_ComputerId;
-            SettingApp.Instance.LoadFileC(configPath);
+            //var configPath = GlobalVariable.Instance.Path_Save_ComputerId;
+            //SettingApp.Instance.LoadFileC(configPath);
 
 
-            var token = TokenRespositories.Instance.LoadToken();
+            //var token = TokenRespositories.Instance.LoadToken();
 
-            // Thêm thời gian đệm an toàn (Buffer) là 5 phút
-            var bufferTime = TimeSpan.FromMinutes(5);
-            if (token != null && !string.IsNullOrEmpty(token.access_token) && (token.Expried - bufferTime) > DateTime.Now)
-            {
+            //// Thêm thời gian đệm an toàn (Buffer) là 5 phút
+            //var bufferTime = TimeSpan.FromMinutes(5);
+            //if (token != null && !string.IsNullOrEmpty(token.access_token) && (token.Expried - bufferTime) > DateTime.Now)
+            //{
              
-                var configWindow = new NewProjectWindow();
-                this.MainWindow = configWindow; 
-                configWindow.Show();
-            }
-            else
-            {
-              TokenRespositories.Instance.DeleteToken();
-                var loginWindow = new LoginWindow();
-                this.MainWindow = loginWindow; 
-                loginWindow.Show();
-            }
+            //    var configWindow = new NewProjectWindow();
+            //    this.MainWindow = configWindow; 
+            //    configWindow.Show();
+            //}
+            //else
+            //{
+            //  TokenRespositories.Instance.DeleteToken();
+            //    var loginWindow = new LoginWindow();
+            //    this.MainWindow = loginWindow; 
+            //    loginWindow.Show();
+            //}
 
         }
 

@@ -16,6 +16,9 @@
     FontFamily="Fonts\Inter_18pt-Regular.ttf"
     WindowState="Maximized"
     mc:Ignorable="d">
+    <Window.DataContext>
+        <VM:UpLoadVideoViewModel />
+    </Window.DataContext>
 
     <Window.Resources>
         <Style x:Key="UploadBoxStyle" TargetType="Button">
@@ -128,10 +131,11 @@
                             Margin="20,0"
                             FontSize="18"
                             HintText="https://www.youtube.com/watch?v=..."
-                            Text="{Binding YoutubeUrl, Mode=TwoWay}" />
+                            Text="{Binding YoutubeUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <Button
                             Grid.Column="1"
                             Width="200"
+                            Command="{Binding CheckUrlCommand, Mode=OneWay}"
                             Style="{StaticResource BaseButtonLogin}">
                             <StackPanel Orientation="Horizontal">
 
