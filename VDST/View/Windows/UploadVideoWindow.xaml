@@ -127,7 +127,8 @@
                             MinHeight="50"
                             Margin="20,0"
                             FontSize="18"
-                            HintText="https://www.youtube.com/watch?v=..." />
+                            HintText="https://www.youtube.com/watch?v=..."
+                            Text="{Binding YoutubeUrl, Mode=TwoWay}" />
                         <Button
                             Grid.Column="1"
                             Width="200"

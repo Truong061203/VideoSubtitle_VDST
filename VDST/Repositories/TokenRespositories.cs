@@ -137,6 +137,11 @@ namespace VDST.Repositories
             if (File.Exists(_credentialPath))
                 File.Delete(_credentialPath);
         }
+        public void DeleteToken()
+        {
+            if (File.Exists(_pathToken))
+                File.Delete(_pathToken);
+        }
 
     }
 }

@@ -34,28 +34,24 @@ namespace VDST
 
             var token = TokenRespositories.Instance.LoadToken();
 
-            if (token != null && !string.IsNullOrEmpty(token.access_token) && token.Expried > DateTime.Now)
+            // Thêm thời gian đệm an toàn (Buffer) là 5 phút
+            var bufferTime = TimeSpan.FromMinutes(5);
+            if (token != null && !string.IsNullOrEmpty(token.access_token) && (token.Expried - bufferTime) > DateTime.Now)
             {
              
                 var configWindow = new NewProjectWindow();
-                this.MainWindow = configWindow; // Đánh dấu đây là cửa sổ chính
+                this.MainWindow = configWindow; 
                 configWindow.Show();
             }
             else
             {
-                if (token != null) 
-               TokenRespositories.Instance.ClearCrendential();
-
+              TokenRespositories.Instance.DeleteToken();
                 var loginWindow = new LoginWindow();
-                this.MainWindow = loginWindow; // Đánh dấu đây là cửa sổ chính
+                this.MainWindow = loginWindow; 
                 loginWindow.Show();
             }
 
         }
-     
-
-
-
 
     }
 

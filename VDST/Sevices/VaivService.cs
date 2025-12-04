@@ -53,7 +53,7 @@ namespace VDST.Sevices
             var request = new StringContent(convertBody, Encoding.UTF8, ContentTypeJson);
             Log.Information("Vaiv Request Body : " + request);
             var response = await _httpClient.PostAsync("auth/login-tool", request);
-            Log.Information("Response Vaiv + "+response);
+            Log.Information("Response Vaiv + " + response);
 
             if (response.IsSuccessStatusCode)
             {
@@ -62,24 +62,24 @@ namespace VDST.Sevices
                 Log.Information("Vaiv Response Convert : " + vaivResponse);
 
                 SetAuthenticationToken(vaivResponse.access_token);
-
-
                 return vaivResponse;
             }
-
-            var reasone = response.ReasonPhrase;
-            Log.Error("Vaiv Login Failed: " + reasone);
-            var statusCode = (int)response.StatusCode;
-            if (statusCode >= 400 && statusCode < 500)
+            else
             {
-                MessageBox.Show("Thông tin đăng nhập chưa đúng! ","Thông Báo" , MessageBoxButton.OK , MessageBoxImage.Error);
+                var reasone = response.ReasonPhrase;
+                Log.Error("Vaiv Login Failed: " + reasone);
+                var statusCode = (int)response.StatusCode;
+                Log.Information("Vaiv Status Code : " + statusCode);
+                if (statusCode >= 400 && statusCode < 500)
+                {
+                    MessageBox.Show("Thông tin đăng nhập chưa đúng! ", "Thông Báo", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+                else if (statusCode >= 500)
+                {
+                    MessageBox.Show("Lỗi máy chủ , vui lòng thử lại sau! ", "Thông Báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
+                return null;
             }
-            else if (statusCode >= 500)
-            {
-               
-                MessageBox.Show("Lỗi máy chủ , vui lòng thử lại sau! ", "Thông Báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-            }
-            return null;
 
         }
     }
