@@ -113,7 +113,19 @@ namespace VDST.ViewModel
 
         private void OnCheck(object obj)
         {
-            var ytbVM = new DownloadVideoViewModel();
+            var id = YoutubeRepository.Instance.RegexYoutubeId(YoutubeUrl);
+            if (string.IsNullOrEmpty(id))
+            {
+                System.Windows.MessageBox.Show("Link youtube không đúng format.\r\nVí dụ:\r\n" +
+                                "https://www.youtube.com/watch?v=[id]\r\n" +
+                                "https://www.youtube.com/shorts/[id]",
+                                "Link youtube", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var exactLink = $"https://www.youtube.com/watch?v={id}";
+
+            var ytbVM = new DownloadVideoViewModel(exactLink);
             ytbVM.Url = YoutubeUrl;
             var ytbWindow = new DownloadVideoWindow();
             ytbWindow.DataContext = ytbVM;
