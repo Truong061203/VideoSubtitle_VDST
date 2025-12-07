@@ -9,6 +9,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Security.Policy;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VDST.Model.Youtubes;
 
@@ -32,8 +33,7 @@ namespace VDST.Repositories
         public string RootPath { get; private set; }
         public string ExePath { get; private set; }
 
-        private readonly string _exeFileName = "yt-dlp.exe";
-        private const string DownloadUrl = "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe";
+        private readonly string _fileName = "yt-dlp.exe";
         public string STABLE_VERSION => "2025.06.30";
         private string _url = string.Empty;
 
@@ -43,17 +43,30 @@ namespace VDST.Repositories
             _url = $"https://github.com/yt-dlp/yt-dlp/releases/download/{STABLE_VERSION}/yt-dlp.exe";
         }
 
+
+        public string RegexYoutubeId(string url)
+        {
+            string pattern = "(youtu.*be.*)/(watch\\?v=|embed/|v|shorts|)(.*?((?=[&#?])|$))";
+            var reg = Regex.Match(url, pattern);
+            if (reg.Success)
+                return reg.Groups[3].Value;
+            return string.Empty;
+        }
+
+
         /// <summary>
         /// get Root Path lưu trữ Tool yt-dlp.exe
         /// </summary>
         private void GetRootPath()
         {
+            // lấy đường dẫn trong app và tạo 1 folder Youtubes để lưu trữ
             var currentDir = AppContext.BaseDirectory;         
             RootPath = Path.Combine(currentDir, "Youtubes");
             if (!Directory.Exists(RootPath))
                 Directory.CreateDirectory(RootPath);
+
             // khởi tạo biến tạm thời cho root path của yt-dlp.exe
-            RootPath = Path.Combine(RootPath, _exeFileName);
+            RootPath = Path.Combine(RootPath, _fileName);
             Log.Information("Youtube Root Path: {RootPath}", RootPath);
         }
 
@@ -65,6 +78,7 @@ namespace VDST.Repositories
         /// </summary>
         public async Task DownloadAsync()
         {
+            // nếu có roothPath rồi thì thôi
             if (File.Exists(RootPath))
                 return;
             try
@@ -79,6 +93,7 @@ namespace VDST.Repositories
                     if (response.IsSuccessStatusCode)
                     {
                         var fileBytes = await response.Content.ReadAsByteArrayAsync();
+                        Log.Information("Read FileBytes :"+fileBytes);
 
                         // Xóa file cũ nếu có (Cập nhật)
                         if (File.Exists(RootPath))
@@ -108,13 +123,13 @@ namespace VDST.Repositories
         {
             await DownloadAsync(); // Tự động tải nếu thiếu
 
-            var cmd = $"{_exeFileName} -j \"{url}\""; 
+            var cmd = $"{_fileName} -j \"{url}\""; 
             Log.Information("Get Youtube Detail CMD: {cmd}", cmd);
             var output = await RunCMDAsync(cmd); 
             Log.Information("Get Youtube Detail Output: {output}", output);
             try
             {
-                return JsonConvert.DeserializeObject<YoutubeDetailDTO>(output);
+               return JsonConvert.DeserializeObject<YoutubeDetailDTO>(output);
             }
             catch 
             { 
@@ -127,7 +142,7 @@ namespace VDST.Repositories
         {
             await DownloadAsync();
 
-            var cmd = $"{_exeFileName} -f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4\" --merge-output-format mp4 -o \"{RootPath}\\%(id)s.%(ext)s\" \"{url}\"";
+            var cmd = $"{_fileName} -f \"bestvideo[ext=mp4]+bestaudio[ext=m4a]/mp4\" --merge-output-format mp4 -o \"{RootPath}\\%(id)s.%(ext)s\" \"{url}\"";
             Log.Information("Download Video CMD: {cmd}", cmd);
             var output = await RunCMDAsync(cmd);
 
@@ -145,7 +160,7 @@ namespace VDST.Repositories
                 // Nếu chưa có thì tải lại (Self-healing)
                 DownloadAsync().Wait();
                 if (!File.Exists(RootPath))
-                    throw new Exception($"File {_exeFileName} không tìm thấy sau khi tải.");
+                    throw new Exception($"File {_fileName} không tìm thấy sau khi tải.");
             }
             var process = new Process();
             process.StartInfo.FileName = "cmd.exe";
