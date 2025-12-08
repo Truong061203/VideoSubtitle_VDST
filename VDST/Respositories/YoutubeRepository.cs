@@ -97,6 +97,7 @@ namespace VDST.Repositories
 
         private async Task<string> RunCMDAsync(string cmd)
         {
+            // 1: Cấu hình process để chạy "cmd /c [lệnh]"
             var process = new Process();
             process.StartInfo.FileName = "cmd.exe";
             process.StartInfo.Arguments = $"/c {cmd}";
@@ -107,12 +108,14 @@ namespace VDST.Repositories
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
 
+            //2: Chạy và đọc output + error
             process.Start();
 
             var output = await process.StandardOutput.ReadToEndAsync();
             var err = await process.StandardError.ReadToEndAsync();
-
             await process.WaitForExitAsync();
+
+            // B3: Nếu lỗi → ném exception, ngược lại trả về stdout (JSON)
             if (process.ExitCode != 0)
                 throw new Exception($"yt-dlp error: {err}");
 
@@ -186,27 +189,35 @@ namespace VDST.Repositories
 
         private List<Model.Youtubes.SubtitleDTO> GetSubtitles(string output, string key)
         {
-            JObject root = JObject.Parse(output);
-            JObject subtitles = (JObject)root[key];
-            if (subtitles == null) return null;
+            //1: Parse chuỗi JSON gốc
+            var root = JObject.Parse(output);
 
-            var list = new List<Model.Youtubes.SubtitleDTO>();
-            foreach (var lang in subtitles)
+            //2: Lấy object con theo key: "subtitles" hoặc "automatic_captions"
+            var subsObj = (JObject)root[key];
+            if (subsObj == null)
+                return null;
+
+            var list = new List<SubtitleDTO>();
+
+            //3: Duyệt từng ngôn ngữ ("en", "vi")
+            foreach (var lang in subsObj)
             {
-                string langCode = lang.Key;
-                var subtitleArray = (JArray)lang.Value;
-                foreach (var subtitle in subtitleArray)
+                var langCode = lang.Key;
+                var arr = (JArray)lang.Value;
+
+                //4: Duyệt từng subtitle trong mảng
+                foreach (var item in arr)
                 {
-                    var sub = new Model.Youtubes.SubtitleDTO
+                    list.Add(new SubtitleDTO
                     {
                         LanguageCode = langCode,
-                        Name = (string)subtitle["name"],
-                        Ext = (string)subtitle["ext"],
-                        Url = (string)subtitle["url"]
-                    };
-                    list.Add(sub);
+                        Name = (string)item["name"],
+                        Ext = (string)item["ext"],
+                        Url = (string)item["url"]
+                    });
                 }
             }
+
             return list;
         }
 

@@ -113,6 +113,7 @@ namespace VDST.ViewModel
 
         private void OnCheck(object obj)
         {
+            // 1. Kiểm tra định dạng của đường dẫn và lấy ra id 
             var id = YoutubeRepository.Instance.RegexYoutubeId(YoutubeUrl);
             if (string.IsNullOrEmpty(id))
             {
@@ -125,8 +126,11 @@ namespace VDST.ViewModel
 
             var exactLink = $"https://www.youtube.com/watch?v={id}";
 
+            // gán nó cho datacontext của downloadVideoVM
             var ytbVM = new DownloadVideoViewModel(exactLink);
             ytbVM.Url = YoutubeUrl;
+
+            //gán vm cho view 
             var ytbWindow = new DownloadVideoWindow();
             ytbWindow.DataContext = ytbVM;
             if (ytbWindow.ShowDialog() == true)

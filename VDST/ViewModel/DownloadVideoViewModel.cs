@@ -18,41 +18,6 @@ namespace VDST.ViewModel
 {
     public class DownloadVideoViewModel : ViewModelBase
     {
-        private string _url;
-        public string Url
-        {
-            get => _url;
-            set
-            {
-                _url = value;
-                RaisePropertyChanged(nameof(Url));
-            }
-        }
-
-        // Dữ liệu hiển thị sau khi check
-        private string _titleVideo;
-        public string TitleVideo
-        {
-            get => _titleVideo;
-            set { _titleVideo = value;
-                RaisePropertyChanged(nameof(TitleVideo)); }
-        }
-
-        private string _thumbnailUrl;
-        public string ThumbnailUrl
-        {
-            get => _thumbnailUrl;
-            set { _thumbnailUrl = value;
-                RaisePropertyChanged(nameof(ThumbnailUrl)); }
-        }
-
-        private BitmapImage _thumbnail;
-        public BitmapImage Thumbnail
-        {
-            get => _thumbnail;
-            set { _thumbnail = value; RaisePropertyChanged(nameof(Thumbnail)); }
-        }
-
         private bool _isBusy;
         public bool IsBusy
         {
@@ -61,11 +26,12 @@ namespace VDST.ViewModel
             {
                 _isBusy = value;
                 RaisePropertyChanged(nameof(IsBusy));
-           
+
                 (CheckCommand as VfxCommand)?.RaiseCanExecuteChanged();
                 (DownloadVideoCommand as VfxCommand)?.RaiseCanExecuteChanged();
             }
         }
+        private readonly string _url;
         public ObservableCollection<SubtitleDTO> Subtitles { get; } = new();
 
         private SubtitleDTO _selectedSubtitle;
@@ -81,6 +47,8 @@ namespace VDST.ViewModel
             }
         }
 
+        private readonly HttpClient _httpClient = new HttpClient();
+        private readonly YoutubeModel Youtube = new YoutubeModel();
 
 
         // BIẾN KẾT QUẢ (Để trả về cho màn hình cha)
@@ -96,7 +64,8 @@ namespace VDST.ViewModel
             CheckCommand = new VfxCommand(OnCheck, () => !IsBusy);
 
             // Chỉ cho tải khi đã Check xong (có Title)
-            DownloadVideoCommand = new VfxCommand(OnDownload, () => !IsBusy && !string.IsNullOrEmpty(TitleVideo));
+            //DownloadVideoCommand = new VfxCommand(OnDownload, () => !IsBusy && !string.IsNullOrEmpty(TitleVideo));
+            _ = LoadInfoAsync();
         }
 
 
@@ -106,136 +75,141 @@ namespace VDST.ViewModel
             try
             {
                 IsBusy = true;
-                Log.Information("Loading youtube info for {Url}", Url);
 
-                var detail = await YoutubeRepository.Instance.GetYoutubeDetailAsync(Url);
-                if (detail == null)
+                var id = YoutubeRepository.Instance.RegexYoutubeId(_url);
+                if (string.IsNullOrEmpty(id))
                 {
-                    MessageBox.Show("Không lấy được thông tin video YouTube.",
-                                    "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Link youtube không hợp lệ.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                TitleVideo = detail.Title;
-                Duration = TimeSpan.FromSeconds(detail.Duration);
+                var exactLink = $"https://www.youtube.com/watch?v={id}";
+                var detail = await YoutubeRepository.Instance.GetYoutubeDetailAsync(exactLink);
+                if (detail == null)
+                {
+                    MessageBox.Show("Không lấy được thông tin video.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
 
-                // Thumbnail
+                Youtube.VideoId= detail.Id;
+                Youtube.Duration = TimeSpan.FromSeconds(detail.Duration);
+                Youtube.Title = $"{detail.Title} [{Youtube.Duration:mm\\:ss}]";
+
                 if (!string.IsNullOrWhiteSpace(detail.Thumbnail))
                 {
-                    try
-                    {
-                        var bytes = await _httpClient.GetByteArrayAsync(detail.Thumbnail);
-                        using var ms = new MemoryStream(bytes);
-                        var bmp = new BitmapImage();
-                        bmp.BeginInit();
-                        bmp.StreamSource = ms;
-                        bmp.CacheOption = BitmapCacheOption.OnLoad;
-                        bmp.EndInit();
-                        bmp.Freeze();
-                        Thumbnail = bmp;
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Warning(ex, "Load thumbnail fail");
-                    }
+                    var bytes = await _httpClient.GetByteArrayAsync(detail.Thumbnail);
+                    using var ms = new MemoryStream(bytes);
+                    var bmp = new BitmapImage();
+                    bmp.BeginInit();
+                    bmp.StreamSource = ms;
+                    bmp.CacheOption = BitmapCacheOption.OnLoad;
+                    bmp.EndInit();
+                    bmp.Freeze();
+                    Youtube.Thumbnail = bmp;
                 }
 
-                // Subtitles
-                Subtitles.Clear();
-                var subs = (detail.OriginSubs != null && detail.OriginSubs.Length > 0)
-                    ? detail.OriginSubs
-                    : (detail.AutoSubs ?? Array.Empty<SubtitleDTO>());
+                Youtube.Subtitles.Clear();
+                Youtube.SubFilters.Clear();
 
-                foreach (var s in subs)
-                    Subtitles.Add(s);
+                var original = detail.OriginSubs;
+                var auto = detail.AutoSubs;
 
-                if (Subtitles.Count == 0)
+                if (original != null && original.Length > 0)
                 {
-                    MessageBox.Show("Video không có subtitle (gốc hoặc auto).",
-                                    "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                    var unique = original
+                        .GroupBy(x => x.LanguageCode)
+                        .Select(g => g.FirstOrDefault(s => s.Ext == "srt") ?? g.First())
+                        .ToList();
+
+                    foreach (var item in unique.Where(x => x != null))
+                    {
+                        Youtube.Subtitles.Add(new SubtitleFormatModel
+                        {
+                            Name = item.Name,
+                            Language = item.LanguageCode,
+                            Ext = item.Ext,
+                            Url = item.Url,
+                            Source = "--write-subs"
+                        });
+                    }
                 }
+
+                if (Youtube.Subtitles.Count == 0 && auto != null && auto.Length > 0)
+                {
+                    var unique = auto
+                        .GroupBy(x => x.LanguageCode)
+                        .Select(g => g.FirstOrDefault(s => s.Ext == "srt") ?? g.First())
+                        .ToList();
+
+                    foreach (var item in unique.Where(x => x != null))
+                    {
+                        Youtube.Subtitles.Add(new SubtitleFormatModel
+                        {
+                            Name = item.Name,
+                            Language = item.LanguageCode,
+                            Ext = item.Ext,
+                            Url = item.Url,
+                            Source = "--write-auto-subs"
+                        });
+                    }
+                }
+
+                foreach (var s in Youtube.Subtitles)
+                    Youtube.SubFilters.Add(s);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error while loading youtube info");
+                Log.Error(ex, "LoadVideoInfoAsync error");
                 MessageBox.Show(ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
                 IsBusy = false;
+                RaisePropertyChanged(nameof(Youtube));
             }
         }
         private async void OnCheck(object obj)
         {
-            IsBusy = true;
-            TitleVideo = "Đang kiểm tra và tải công cụ hỗ trợ (lần đầu)...";
-            ThumbnailUrl = null;
-
-            try
-            {
-                // 1. Gọi Repository lấy thông tin 
-                // (Repository sẽ tự động tải tool nếu chưa có)
-                var info = await YoutubeRepository.Instance.GetYoutubeDetailAsync(Url);
-
-                if (info != null)
-                {
-                    TitleVideo = info.Title;
-                    ThumbnailUrl = info.Thumbnail;
-                }
-                else
-                {
-                    TitleVideo = "Không tìm thấy video. Link sai hoặc video riêng tư.";
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi: " + ex.Message);
-            }
-            finally
-            {
-                IsBusy = false;
-                // Cập nhật lại nút Download (Sáng lên nếu check thành công)
-                (DownloadCommand as VfxCommand)?.RaiseCanExecuteChanged();
-            }
+          
         }
 
-        private async void OnDownload(object obj)
-        {
-            IsBusy = true;
-            TitleVideo = "Đang tải video về máy...";
+        //private async void OnDownload(object obj)
+        //{
+        //    IsBusy = true;
+        //    TitleVideo = "Đang tải video về máy...";
 
-            try
-            {
-                // 2. Gọi Repository tải video thật
-                string path = await YoutubeRepository.Instance.DownloadVideoAsync(Url);
+        //    try
+        //    {
+        //        // 2. Gọi Repository tải video thật
+        //        string path = await YoutubeRepository.Instance.DownloadVideoAsync(Url);
 
-                if (!string.IsNullOrEmpty(path))
-                {
-                    DownloadedVideoPath = path;
-                    MessageBox.Show("Tải thành công!");
+        //        if (!string.IsNullOrEmpty(path))
+        //        {
+        //            DownloadedVideoPath = path;
+        //            MessageBox.Show("Tải thành công!");
 
-                    // Đóng cửa sổ và trả về OK
-                    if (obj is Window window)
-                    {
-                        window.DialogResult = true;
-                        window.Close();
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Tải thất bại. Vui lòng thử lại.");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi tải: " + ex.Message);
-            }
-            finally
-            {
-                IsBusy = false;
-                TitleVideo = "Đã hoàn tất.";
-            }
-        }
+        //            // Đóng cửa sổ và trả về OK
+        //            if (obj is Window window)
+        //            {
+        //                window.DialogResult = true;
+        //                window.Close();
+        //            }
+        //        }
+        //        else
+        //        {
+        //            MessageBox.Show("Tải thất bại. Vui lòng thử lại.");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show("Lỗi tải: " + ex.Message);
+        //    }
+        //    finally
+        //    {
+        //        IsBusy = false;
+        //        TitleVideo = "Đã hoàn tất.";
+        //    }
+        //}
     }
 }
 
