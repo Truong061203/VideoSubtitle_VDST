@@ -73,20 +73,7 @@ namespace VDST.ViewModel
 
         }
 
-        public void OnProjectPath(string pathVDST)
-        {
-            var uploadVM = new UpLoadVideoViewModel();
-
-            // 2. NẠP DỮ LIỆU VÀO (Truyền cái path vừa tạo sang)
-            uploadVM.LoadProjectData(pathVDST);
-
-            // 3. Gán vào View và Hiển thị
-            var uploadWindow = new UploadVideoWindow();
-            uploadWindow.DataContext = uploadVM; // Gán cái VM "đã có dữ liệu" vào
-            uploadWindow.Show(); 
-        }
-
-
+       
 
 
         private void OnOk(object obj)
@@ -150,9 +137,9 @@ namespace VDST.ViewModel
                 TitleNewProject = projectFilePath; 
 
                 // 5. Đóng window với DialogResult = true
-              
                 if (obj is Window window)
                 {
+                    // gọi window mới và gán datacontext
                     OnProjectPath(projectFilePath);
                     window.Close();
                 }
@@ -166,6 +153,20 @@ namespace VDST.ViewModel
                     MessageBoxImage.Error);
             }
         }
+
+        public void OnProjectPath(string pathVDST)
+        {
+            var uploadVM = new UpLoadVideoViewModel();
+            // 2. NẠP DỮ LIỆU VÀO (Truyền cái path vừa tạo sang)
+            uploadVM.LoadProjectData(pathVDST);
+
+            // 3. Gán vào View và Hiển thị
+            var uploadWindow = new UploadVideoWindow();
+            uploadWindow.DataContext = uploadVM; // Gán cái VM "đã có dữ liệu" vào
+            uploadWindow.Show();
+        }
+
+
 
         private bool CanOk()
         {

@@ -12,6 +12,8 @@
     Title="{Binding TitleApp, Mode=TwoWay}"
     Width="1280"
     Height="800"
+    d:DataContext="{d:DesignInstance Type=VM:UpLoadVideoViewModel,
+                                     IsDesignTimeCreatable=False}"
     Background="#f8fafc"
     FontFamily="Fonts\Inter_18pt-Regular.ttf"
     WindowState="Maximized"

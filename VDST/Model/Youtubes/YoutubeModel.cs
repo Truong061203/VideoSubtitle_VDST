@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -11,7 +12,9 @@ using VDST.ViewModel;
 namespace VDST.Model.Youtubes
 {
     public class YoutubeModel : ViewModelBase
-    {
+    { 
+
+        // sự kiện khi ThumbnailPath thay đổi
         public event EventHandler ThumbnailPathChanged;
 
         private string _url = string.Empty;
@@ -23,6 +26,7 @@ namespace VDST.Model.Youtubes
                 if (_url != value)
                 {
                     _url = value;
+                    Log.Information("YTB URL in Model :" + Url);
                     RaisePropertyChanged(nameof(Url));
                 }
                 // Bật nút download khi có thumbnail + url
@@ -39,6 +43,7 @@ namespace VDST.Model.Youtubes
                 if (_title != value)
                 {
                     _title = value;
+                    Log.Information("YTB Title in Model :" + Title);
                     RaisePropertyChanged(nameof(Title));
                 }
             }
@@ -53,6 +58,7 @@ namespace VDST.Model.Youtubes
                 if (_duration != value)
                 {
                     _duration = value;
+                    Log.Information("YTB Duration in Model :" + Duration);
                     RaisePropertyChanged(nameof(Duration));
                 }
             }
@@ -66,7 +72,8 @@ namespace VDST.Model.Youtubes
             {
                 if (_videoPath != value)
                 {
-                    _videoPath = value;
+                    _videoPath = value; 
+                    Log.Information("YTB VideoPath in Model :" + VideoPath);
                     RaisePropertyChanged(nameof(VideoPath));
                 }
             }
@@ -80,7 +87,8 @@ namespace VDST.Model.Youtubes
             {
                 if (_subtitlePath != value)
                 {
-                    _subtitlePath = value;
+                    _subtitlePath = value; 
+                    Log.Information("YTB SubtitlePath in Model :" + SubtitlePath);
                     RaisePropertyChanged(nameof(SubtitlePath));
                 }
             }
@@ -94,7 +102,8 @@ namespace VDST.Model.Youtubes
             {
                 if (_thumbnailPath != value)
                 {
-                    _thumbnailPath = value;
+                    _thumbnailPath = value; 
+                    Log.Information("YTB ThumbnailPath in Model :" + ThumbnailPath);
                     RaisePropertyChanged(nameof(ThumbnailPath));
                 }
                 ThumbnailPathChanged?.Invoke(this, EventArgs.Empty);
@@ -110,6 +119,7 @@ namespace VDST.Model.Youtubes
                 if (_thumbnail != value)
                 {
                     _thumbnail = value;
+                    Log.Information("YTB Thumbnail in Model set.");
                     RaisePropertyChanged(nameof(Thumbnail));
                 }
                 // Bật/tắt nút Download theo Url + Thumbnail
@@ -126,6 +136,7 @@ namespace VDST.Model.Youtubes
                 if (_isEnableDownload != value)
                 {
                     _isEnableDownload = value;
+                    Log.Information("YTB IsEnableDownload in Model :" + IsEnableDownload);
                     RaisePropertyChanged(nameof(IsEnableDownload));
                 }
             }
@@ -141,14 +152,5 @@ namespace VDST.Model.Youtubes
         {
         }
     }
-    public class SubtitleFormatModel
-    {
-        public bool IsChecked { get; set; }
-        public string Name { get; set; }        // "English"
-        public string VietnameseName { get; set; } = "";  // nếu có map tên tiếng Việt
-        public string Language { get; set; }        // "en", "vi"
-        public string Ext { get; set; }        // "srt", "vtt"
-        public string Url { get; set; }        // link phụ đề
-        public string Source { get; set; }        // "--write-subs" / "--write-auto-subs"
-    }
+  
 }

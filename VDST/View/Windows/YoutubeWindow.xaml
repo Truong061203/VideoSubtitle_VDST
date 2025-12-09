@@ -1,0 +1,186 @@
+﻿<Window
+    x:Class="VDST.View.Windows.YoutubeWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:Icons="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:converters="clr-namespace:VDST.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:VDST.View.Windows"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:uc="clr-namespace:VDST.View.VUserControl"
+    xmlns:vm="clr-namespace:VDST.ViewModel"
+    x:Name="_this"
+    Title="Youtube Extension"
+    Width="1280"
+    Height="720"
+    d:DataContext="{d:DesignInstance Type=vm:YoutubeViewModel,
+                                     IsDesignTimeCreatable=False}"
+    WindowStartupLocation="CenterScreen"
+    WindowState="Maximized"
+    mc:Ignorable="d">
+    <Window.Resources>
+        <converters:VfxConverters x:Key="BooleanVisibility" />
+        <Style x:Key="RedBtnStyle" TargetType="Button">
+            <Setter Property="Background" Value="#DC2626" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="MinHeight" Value="35" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="MinWidth" Value="40" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            Background="{TemplateBinding Background}"
+                            BorderThickness="0"
+                            CornerRadius="8">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#B91C1C" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+
+
+    <Grid Background="#F1F5F9">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="1.5*" />
+            <ColumnDefinition Width="auto" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        <GridSplitter
+            Grid.Column="1"
+            Width="2"
+            Margin="0,5"
+            HorizontalAlignment="Stretch"
+            Background="LightPink" />
+
+        <Grid Grid.Row="0" Margin="15">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Orientation="Horizontal">
+                <Image
+                    Height="25"
+                    Margin="0,5,0,0"
+                    Source="/Images/youtobe.png" />
+                <TextBlock
+                    Margin="10,0"
+                    VerticalAlignment="Center"
+                    FontSize="25"
+                    FontWeight="Bold"
+                    Text="YouTube Extractor" />
+            </StackPanel>
+
+            <Grid Grid.Row="1" Margin="0,20,0,0">
+                <StackPanel Orientation="Vertical">
+                    <StackPanel Orientation="Horizontal">
+                        <Icons:PackIconMaterial
+                            Margin="5,0,0,0"
+                            Foreground="blue"
+                            Kind="LinkVariant" />
+                        <TextBlock
+                            Margin="5,0"
+                            HorizontalAlignment="Left"
+                            VerticalAlignment="Center"
+                            FontSize="13"
+                            FontWeight="DemiBold"
+                            Text="Dán đường dẫn Video tại đây" />
+                    </StackPanel>
+
+                    <Grid>
+                        <uc:TextBoxUC
+                            MinHeight="40"
+                            Margin="0,5"
+                            FontSize="15"
+                            HintText="https://www.youtube.com/watch?v=..."
+                            Text="{Binding YoutubeVModel.Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <Button
+                            Margin="0,0,5,0"
+                            HorizontalAlignment="Right"
+                            Style="{StaticResource RedBtnStyle}">
+                            <Icons:PackIconBootstrapIcons
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Kind="Search" />
+                        </Button>
+
+                    </Grid>
+                </StackPanel>
+            </Grid>
+
+            <Grid Grid.Row="2" Margin="0,15,0,0">
+                <Grid Visibility="{Binding IsBusy, Converter={StaticResource BooleanVisibility}}">
+                    <ProgressBar IsIndeterminate="True" Style="{StaticResource CircleStyle}" />
+                </Grid>
+                <Border
+                    BorderBrush="LightGray"
+                    BorderThickness="1"
+                    CornerRadius="10">
+                    <Image Source="{Binding YoutubeVModel.Thumbnail, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Stretch="Fill" />
+                </Border>
+            </Grid>
+            <TextBlock
+                Grid.Row="3"
+                Margin="0,5"
+                FontSize="18"
+                FontWeight="DemiBold"
+                Text="{Binding YoutubeVModel.Title, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+                TextWrapping="WrapWithOverflow" />
+            <Grid Grid.Row="4">
+                <Button Height="50" />
+            </Grid>
+
+        </Grid>
+        <Grid Grid.Column="2" Margin="0,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+
+            <Border BorderBrush="LightGray" BorderThickness="0,0,0,1">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="AUTO" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Column="0"
+                        Margin="10,5"
+                        VerticalAlignment="Center"
+                        FontSize="20"
+                        FontWeight="Bold"
+                        Text="Danh Sách Phụ Đề "
+                        TextWrapping="Wrap" />
+                    <Grid Grid.Column="1" Margin="0,5,10,0">
+                        <uc:TextBoxUC
+                            MinHeight="40"
+                            Margin="0,5"
+                            FontSize="15"
+                            HintText="Language Search ..."
+                            Text="{Binding YoutubeUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    </Grid>
+                </Grid>
+
+            </Border>
+            <Grid Grid.Row="1" />
+        </Grid>
+
+
+
+    </Grid>
+</Window>

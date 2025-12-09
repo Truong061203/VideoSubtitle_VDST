@@ -15,15 +15,13 @@ using System.Windows.Shapes;
 namespace VDST.View.Windows
 {
     /// <summary>
-    /// Interaction logic for DownloadVideoWindow.xaml
+    /// Interaction logic for YoutubeWindow.xaml
     /// </summary>
-    public partial class DownloadVideoWindow : Window
+    public partial class YoutubeWindow : Window
     {
-        public DownloadVideoWindow()
+        public YoutubeWindow()
         {
             InitializeComponent();
         }
-
-     
     }
 }

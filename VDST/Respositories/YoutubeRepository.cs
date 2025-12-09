@@ -127,7 +127,6 @@ namespace VDST.Repositories
         /// </summary>
         public async Task<YoutubeDetailDTO> GetYoutubeDetailAsync(string url)
         {
-
             await DownloadAsync();
 
             // 2. Gọi yt-dlp để lấy JSON
@@ -165,6 +164,7 @@ namespace VDST.Repositories
             {
                 await DownloadAsync();
                 var dir = Path.GetDirectoryName(outputPath);
+                Log.Information("Download video Youtube từ {Url} về {OutputPath}", url, outputPath);
                 if (!Directory.Exists(dir))
                     Directory.CreateDirectory(dir);
 

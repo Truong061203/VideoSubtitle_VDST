@@ -11,6 +11,7 @@ using System.Windows.Input;
 using VDST.Commands;
 using VDST.Model;
 using VDST.Model.Interfaces;
+using VDST.Model.Youtubes;
 using VDST.Repositories;
 using VDST.View.Windows;
 
@@ -18,6 +19,7 @@ namespace VDST.ViewModel
 {
     public class UpLoadVideoViewModel : ViewModelBase
     {
+        #region
         private ProjectInfoModel _currentProject;
 
         public ProjectInfoModel CurrentProject
@@ -26,6 +28,7 @@ namespace VDST.ViewModel
             set
             {
                 _currentProject = value;
+                Log.Information("Current project set to: {CurrentProject}", CurrentProject?.ProjectName);
                 RaisePropertyChanged(nameof(CurrentProject));
             }
         }
@@ -37,6 +40,7 @@ namespace VDST.ViewModel
             set
             {
                 titleApp = value;
+                Log.Information("Title App set to: {TitleApp}", TitleApp);
                 RaisePropertyChanged(nameof(TitleApp));
             }
         }
@@ -49,8 +53,7 @@ namespace VDST.ViewModel
             set
             {
                 _youtubeUrl = value;
-                Log.Information("YTB URL :"+ YoutubeUrl);
-
+                Log.Information("YTB URL :" + YoutubeUrl);
                 RaisePropertyChanged(nameof(YoutubeUrl));
                 (CheckUrlCommand as VfxCommand)?.RaiseCanExecuteChanged();
             }
@@ -63,9 +66,12 @@ namespace VDST.ViewModel
             private set
             {
                 _projectFilePath = value;
+                Log.Information("Project file path set to: {ProjectFilePath}", ProjectFilePath);
                 RaisePropertyChanged(nameof(ProjectFilePath));
             }
         }
+
+        #endregion
 
         public void LoadProjectData(string projectFilePath)
         {
@@ -113,31 +119,42 @@ namespace VDST.ViewModel
 
         private void OnCheck(object obj)
         {
-            // 1. Kiểm tra định dạng của đường dẫn và lấy ra id 
-            var id = YoutubeRepository.Instance.RegexYoutubeId(YoutubeUrl);
-            if (string.IsNullOrEmpty(id))
+            try
             {
-                System.Windows.MessageBox.Show("Link youtube không đúng format.\r\nVí dụ:\r\n" +
-                                "https://www.youtube.com/watch?v=[id]\r\n" +
-                                "https://www.youtube.com/shorts/[id]",
-                                "Link youtube", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
+
+                // 1. Kiểm tra định dạng của đường dẫn và lấy ra id 
+                var id = YoutubeRepository.Instance.RegexYoutubeId(YoutubeUrl);
+                if (string.IsNullOrEmpty(id))
+                {
+                    System.Windows.MessageBox.Show("Link youtube không đúng format.\r\nVí dụ:\r\n" +
+                                    "https://www.youtube.com/watch?v=[id]\r\n" +
+                                    "https://www.youtube.com/shorts/[id]",
+                                    "Link youtube", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var urlLink = $"https://www.youtube.com/watch?v={id}";
+               
+                // gán nó cho datacontext của downloadVideoVM
+                var ytbVM = new YoutubeViewModel(urlLink);
+
+                //gán vm cho view 
+                var ytbWindow = new YoutubeWindow();
+                ytbWindow.DataContext = ytbVM;
+                if (ytbWindow.ShowDialog() == true)
+                {
+                    Log.Information("YouTube URL checked successfully: {YoutubeUrl}", YoutubeUrl);
+                }
             }
-
-            var exactLink = $"https://www.youtube.com/watch?v={id}";
-
-            // gán nó cho datacontext của downloadVideoVM
-            var ytbVM = new DownloadVideoViewModel(exactLink);
-            ytbVM.Url = YoutubeUrl;
-
-            //gán vm cho view 
-            var ytbWindow = new DownloadVideoWindow();
-            ytbWindow.DataContext = ytbVM;
-            if (ytbWindow.ShowDialog() == true)
+            catch (Exception ex)
             {
-                Log.Information("YouTube URL checked successfully: {YoutubeUrl}", YoutubeUrl);
+                Log.Error(ex, "Error checking YouTube URL: {YoutubeUrl}", YoutubeUrl);
+                System.Windows.MessageBox.Show("Đã có lỗi xảy ra khi kiểm tra link youtube.\r\n" +
+                                    "Vui lòng thử lại sau.",
+                                    "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+
             }
         }
-    }
 
+    }
 }

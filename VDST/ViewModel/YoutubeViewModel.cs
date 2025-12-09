@@ -16,8 +16,19 @@ using VDST.Repositories;
 
 namespace VDST.ViewModel
 {
-    public class DownloadVideoViewModel : ViewModelBase
+    public class YoutubeViewModel : ViewModelBase
     {
+        private YoutubeModel _youtubeModel = new YoutubeModel();
+        public YoutubeModel YoutubeVModel
+        {
+            get => _youtubeModel;
+            set
+            {
+                _youtubeModel = value;
+                RaisePropertyChanged(nameof(YoutubeModel));
+            }
+        }
+
         private bool _isBusy;
         public bool IsBusy
         {
@@ -31,7 +42,6 @@ namespace VDST.ViewModel
                 (DownloadVideoCommand as VfxCommand)?.RaiseCanExecuteChanged();
             }
         }
-        private readonly string _url;
         public ObservableCollection<SubtitleDTO> Subtitles { get; } = new();
 
         private SubtitleDTO _selectedSubtitle;
@@ -47,9 +57,11 @@ namespace VDST.ViewModel
             }
         }
 
-        private readonly HttpClient _httpClient = new HttpClient();
-        private readonly YoutubeModel Youtube = new YoutubeModel();
 
+        private readonly HttpClient _httpClient = new HttpClient();
+       
+
+        private readonly string _url;
 
         // BIẾN KẾT QUẢ (Để trả về cho màn hình cha)
         public string DownloadedVideoPath { get; private set; }
@@ -59,10 +71,10 @@ namespace VDST.ViewModel
         public ICommand DownloadSubtitleFileCommand { get; }
         public ICommand ExportSubtitleTextCommand { get; }
 
-        public DownloadVideoViewModel(string url)
+        public YoutubeViewModel(string url)
         {
             CheckCommand = new VfxCommand(OnCheck, () => !IsBusy);
-
+            _url = url;
             // Chỉ cho tải khi đã Check xong (có Title)
             //DownloadVideoCommand = new VfxCommand(OnDownload, () => !IsBusy && !string.IsNullOrEmpty(TitleVideo));
             _ = LoadInfoAsync();
@@ -74,26 +86,28 @@ namespace VDST.ViewModel
         {
             try
             {
+                YoutubeVModel.Url = _url;
                 IsBusy = true;
 
-                var id = YoutubeRepository.Instance.RegexYoutubeId(_url);
-                if (string.IsNullOrEmpty(id))
-                {
-                    MessageBox.Show("Link youtube không hợp lệ.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
+                //var id = YoutubeRepository.Instance.RegexYoutubeId(_url);
+                //if (string.IsNullOrEmpty(id))
+                //{
+                //    MessageBox.Show("Link youtube không hợp lệ.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                //    return;
+                //}
 
-                var exactLink = $"https://www.youtube.com/watch?v={id}";
-                var detail = await YoutubeRepository.Instance.GetYoutubeDetailAsync(exactLink);
+                //var exactLink = $"https://www.youtube.com/watch?v={id}";
+
+                var detail = await YoutubeRepository.Instance.GetYoutubeDetailAsync(_url);
                 if (detail == null)
                 {
                     MessageBox.Show("Không lấy được thông tin video.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                Youtube.VideoId= detail.Id;
-                Youtube.Duration = TimeSpan.FromSeconds(detail.Duration);
-                Youtube.Title = $"{detail.Title} [{Youtube.Duration:mm\\:ss}]";
+                YoutubeVModel.VideoId= detail.Id;
+                YoutubeVModel.Duration = TimeSpan.FromSeconds(detail.Duration);
+                YoutubeVModel.Title = $"{detail.Title} [{YoutubeVModel.Duration:mm\\:ss}]";
 
                 if (!string.IsNullOrWhiteSpace(detail.Thumbnail))
                 {
@@ -105,11 +119,11 @@ namespace VDST.ViewModel
                     bmp.CacheOption = BitmapCacheOption.OnLoad;
                     bmp.EndInit();
                     bmp.Freeze();
-                    Youtube.Thumbnail = bmp;
+                    YoutubeVModel.Thumbnail = bmp;
                 }
 
-                Youtube.Subtitles.Clear();
-                Youtube.SubFilters.Clear();
+                YoutubeVModel.Subtitles.Clear();
+                YoutubeVModel.SubFilters.Clear();
 
                 var original = detail.OriginSubs;
                 var auto = detail.AutoSubs;
@@ -123,7 +137,7 @@ namespace VDST.ViewModel
 
                     foreach (var item in unique.Where(x => x != null))
                     {
-                        Youtube.Subtitles.Add(new SubtitleFormatModel
+                        YoutubeVModel.Subtitles.Add(new SubtitleFormatModel
                         {
                             Name = item.Name,
                             Language = item.LanguageCode,
@@ -134,7 +148,7 @@ namespace VDST.ViewModel
                     }
                 }
 
-                if (Youtube.Subtitles.Count == 0 && auto != null && auto.Length > 0)
+                if (YoutubeVModel.Subtitles.Count == 0 && auto != null && auto.Length > 0)
                 {
                     var unique = auto
                         .GroupBy(x => x.LanguageCode)
@@ -143,7 +157,7 @@ namespace VDST.ViewModel
 
                     foreach (var item in unique.Where(x => x != null))
                     {
-                        Youtube.Subtitles.Add(new SubtitleFormatModel
+                        YoutubeVModel.Subtitles.Add(new SubtitleFormatModel
                         {
                             Name = item.Name,
                             Language = item.LanguageCode,
@@ -154,8 +168,8 @@ namespace VDST.ViewModel
                     }
                 }
 
-                foreach (var s in Youtube.Subtitles)
-                    Youtube.SubFilters.Add(s);
+                foreach (var s in YoutubeVModel.Subtitles)
+                    YoutubeVModel.SubFilters.Add(s);
             }
             catch (Exception ex)
             {
@@ -165,7 +179,7 @@ namespace VDST.ViewModel
             finally
             {
                 IsBusy = false;
-                RaisePropertyChanged(nameof(Youtube));
+                RaisePropertyChanged(nameof(YoutubeVModel));
             }
         }
         private async void OnCheck(object obj)
