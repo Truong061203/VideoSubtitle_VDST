@@ -59,9 +59,19 @@ namespace VDST.ViewModel
 
 
         private readonly HttpClient _httpClient = new HttpClient();
-       
 
-        private readonly string _url;
+
+        private string _url;
+        public string Url
+        {
+            get => _url;
+            set
+            {
+                _url = value;
+                Log.Information("YTB URL in ViewModel :" + Url);
+                RaisePropertyChanged(nameof(Url));
+            }
+        }
 
         // BIẾN KẾT QUẢ (Để trả về cho màn hình cha)
         public string DownloadedVideoPath { get; private set; }
@@ -71,57 +81,62 @@ namespace VDST.ViewModel
         public ICommand DownloadSubtitleFileCommand { get; }
         public ICommand ExportSubtitleTextCommand { get; }
 
-        public YoutubeViewModel(string url)
+        public YoutubeViewModel(string _url)
         {
             CheckCommand = new VfxCommand(OnCheck, () => !IsBusy);
-            _url = url;
+            Url = _url;
             // Chỉ cho tải khi đã Check xong (có Title)
             //DownloadVideoCommand = new VfxCommand(OnDownload, () => !IsBusy && !string.IsNullOrEmpty(TitleVideo));
-            _ = LoadInfoAsync();
+            LoadInfoAsync(this._url);
         }
 
 
 
-        private async Task LoadInfoAsync()
+        private async Task LoadInfoAsync(string url)
         {
             try
             {
-                YoutubeVModel.Url = _url;
+                YoutubeVModel.Url = url;
                 IsBusy = true;
 
-                //var id = YoutubeRepository.Instance.RegexYoutubeId(_url);
-                //if (string.IsNullOrEmpty(id))
-                //{
-                //    MessageBox.Show("Link youtube không hợp lệ.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                //    return;
-                //}
+                var id = YoutubeRepository.Instance.RegexYoutubeId(url);
+                if (string.IsNullOrEmpty(id))
+                {
+                    System.Windows.MessageBox.Show("Link youtube không đúng format.\r\nVí dụ:\r\n" +
+                                    "https://www.youtube.com/watch?v=[id]\r\n" +
+                                    "https://www.youtube.com/shorts/[id]",
+                                    "Link youtube", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
 
-                //var exactLink = $"https://www.youtube.com/watch?v={id}";
+                var urlLink = $"https://www.youtube.com/watch?v={id}";
 
-                var detail = await YoutubeRepository.Instance.GetYoutubeDetailAsync(_url);
+                var detail = await YoutubeRepository.Instance.GetYoutubeDetailAsync(urlLink);
                 if (detail == null)
                 {
                     MessageBox.Show("Không lấy được thông tin video.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                YoutubeVModel.VideoId= detail.Id;
+                YoutubeVModel.VideoId = detail.Id;
                 YoutubeVModel.Duration = TimeSpan.FromSeconds(detail.Duration);
                 YoutubeVModel.Title = $"{detail.Title} [{YoutubeVModel.Duration:mm\\:ss}]";
 
-                if (!string.IsNullOrWhiteSpace(detail.Thumbnail))
+                // download thumbnail
+                using (var client = new System.Net.Http.HttpClient() { Timeout = TimeSpan.FromSeconds(90) })
                 {
-                    var bytes = await _httpClient.GetByteArrayAsync(detail.Thumbnail);
-                    using var ms = new MemoryStream(bytes);
-                    var bmp = new BitmapImage();
-                    bmp.BeginInit();
-                    bmp.StreamSource = ms;
-                    bmp.CacheOption = BitmapCacheOption.OnLoad;
-                    bmp.EndInit();
-                    bmp.Freeze();
-                    YoutubeVModel.Thumbnail = bmp;
+                    byte[] imageData = await client.GetByteArrayAsync(detail.Thumbnail);
+                    BitmapImage bitmap = new BitmapImage();
+                    bitmap.BeginInit();
+                    bitmap.StreamSource = new MemoryStream(imageData);
+                    bitmap.CacheOption = BitmapCacheOption.OnLoad; // Important for memory management
+                    bitmap.EndInit();
+                    bitmap.Freeze();
+
+                    YoutubeVModel.Thumbnail = bitmap;
                 }
 
+                // get subtitle
                 YoutubeVModel.Subtitles.Clear();
                 YoutubeVModel.SubFilters.Clear();
 
@@ -179,12 +194,18 @@ namespace VDST.ViewModel
             finally
             {
                 IsBusy = false;
-                RaisePropertyChanged(nameof(YoutubeVModel));
             }
         }
         private async void OnCheck(object obj)
         {
-          
+            Url = YoutubeVModel.Url;
+            if (string.IsNullOrEmpty(Url))
+            {
+                MessageBox.Show("Vui lòng điền link video youtube", "Link", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+            await LoadInfoAsync(Url);
+
         }
 
         //private async void OnDownload(object obj)

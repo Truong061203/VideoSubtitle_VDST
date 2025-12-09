@@ -63,6 +63,7 @@
             HorizontalAlignment="Stretch"
             Background="LightPink" />
 
+        <!--  Column 1  -->
         <Grid Grid.Row="0" Margin="15">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -96,7 +97,7 @@
                             Margin="5,0"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center"
-                            FontSize="13"
+                            FontSize="14"
                             FontWeight="DemiBold"
                             Text="Dán đường dẫn Video tại đây" />
                     </StackPanel>
@@ -107,10 +108,12 @@
                             Margin="0,5"
                             FontSize="15"
                             HintText="https://www.youtube.com/watch?v=..."
-                            Text="{Binding YoutubeVModel.Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            Text="{Binding Url, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <Button
                             Margin="0,0,5,0"
                             HorizontalAlignment="Right"
+                            Command="{Binding CheckCommand}"
+                            CommandParameter="{Binding ElementName=_this}"
                             Style="{StaticResource RedBtnStyle}">
                             <Icons:PackIconBootstrapIcons
                                 HorizontalAlignment="Center"
@@ -140,11 +143,60 @@
                 FontWeight="DemiBold"
                 Text="{Binding YoutubeVModel.Title, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                 TextWrapping="WrapWithOverflow" />
+
             <Grid Grid.Row="4">
-                <Button Height="50" />
+                <Button Margin="20,0,20,10">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Setter Property="MinHeight" Value="50" />
+                            <Setter Property="MinWidth" Value="50" />
+                            <Setter Property="VerticalAlignment" Value="Center" />
+                            <Setter Property="Cursor" Value="Hand" />
+                            <Setter Property="Background" Value="#0F172A" />
+                            <Setter Property="Foreground" Value="White" />
+                            <Setter Property="FontWeight" Value="Bold" />
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="Button">
+                                        <Border Background="{TemplateBinding Background}" CornerRadius="10">
+                                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                        </Border>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#1E293B" />
+                                </Trigger>
+
+                                <!--  2. Pressed (Nhấn): Đen tuyền (#000000) hoặc Xanh đậm  -->
+                                <Trigger Property="IsPressed" Value="True">
+                                    <Setter Property="Background" Value="#000000" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+
+                    <StackPanel Orientation="Horizontal">
+                        <Icons:PackIconMaterial
+                            Width="20"
+                            Height="20"
+                            Margin="10,0,10,0"
+                            VerticalAlignment="Center"
+                            Foreground="White"
+                            Kind="Video" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            FontSize="18"
+                            Text="Tải Video (MP4)" />
+                    </StackPanel>
+                </Button>
             </Grid>
 
         </Grid>
+
+
+        <!--  Column 2  -->
         <Grid Grid.Column="2" Margin="0,10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
