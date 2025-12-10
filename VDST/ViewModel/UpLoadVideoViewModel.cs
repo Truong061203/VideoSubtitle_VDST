@@ -137,7 +137,7 @@ namespace VDST.ViewModel
                
                 // gán nó cho datacontext của downloadVideoVM
                 var ytbVM = new YoutubeViewModel(urlLink);
-
+    
                 //gán vm cho view 
                 var ytbWindow = new YoutubeWindow();
                 ytbWindow.DataContext = ytbVM;

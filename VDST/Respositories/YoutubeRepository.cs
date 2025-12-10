@@ -131,6 +131,8 @@ namespace VDST.Repositories
 
             // 2. Gọi yt-dlp để lấy JSON
             var cmd = $"{_fileName} -j \"{url}\"";
+            Log.Information("Running command: {cmd}", cmd);
+
             var output = await RunCMDAsync(cmd);
             if (string.IsNullOrWhiteSpace(output))
                 return null;

@@ -29,8 +29,6 @@ namespace VDST.Model.Youtubes
                     Log.Information("YTB URL in Model :" + Url);
                     RaisePropertyChanged(nameof(Url));
                 }
-                // Bật nút download khi có thumbnail + url
-                IsEnableDownload = Thumbnail != null && string.IsNullOrEmpty(Url) == false;
             }
         }
 
@@ -110,6 +108,7 @@ namespace VDST.Model.Youtubes
             }
         }
 
+        // hiển thị lên ui
         private ImageSource _thumbnail = null;
         public ImageSource Thumbnail
         {
@@ -123,27 +122,14 @@ namespace VDST.Model.Youtubes
                     RaisePropertyChanged(nameof(Thumbnail));
                 }
                 // Bật/tắt nút Download theo Url + Thumbnail
-                IsEnableDownload = Thumbnail != null && string.IsNullOrEmpty(Url) == false;
             }
         }
 
-        private bool _isEnableDownload = false;
-        public bool IsEnableDownload
-        {
-            get => _isEnableDownload;
-            set
-            {
-                if (_isEnableDownload != value)
-                {
-                    _isEnableDownload = value;
-                    Log.Information("YTB IsEnableDownload in Model :" + IsEnableDownload);
-                    RaisePropertyChanged(nameof(IsEnableDownload));
-                }
-            }
-        }
 
+        //Danh sách phụ đề đầy đủ
         public ObservableCollection<SubtitleFormatModel> Subtitles { get; set; } = new ObservableCollection<SubtitleFormatModel>();
 
+        //Danh sách phụ đề đang hiển thị (sau khi filter tìm kiếm)
         public ObservableCollection<SubtitleFormatModel> SubFilters { get; set; } = new ObservableCollection<SubtitleFormatModel>();
 
         public string VideoId { get; set; }
