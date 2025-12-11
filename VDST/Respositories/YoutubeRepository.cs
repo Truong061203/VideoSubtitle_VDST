@@ -13,6 +13,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using VDST.Model.Youtubes;
+using VDST.Respositories;
 
 namespace VDST.Repositories
 {
@@ -37,6 +38,7 @@ namespace VDST.Repositories
         private readonly string _fileName = "yt-dlp.exe";
         private string _url = "https://github.com/yt-dlp/yt-dlp/releases/download/2025.11.12/yt-dlp.exe";
 
+        public string TempDownloadDir { get; private set; }
         private YoutubeRepository()
         {
             GetRootPath();
@@ -70,12 +72,17 @@ namespace VDST.Repositories
             // khởi tạo biến tạm thời cho root path của yt-dlp.exe
             RootPathExe = Path.Combine(RootDir, _fileName);
             Log.Information("Youtube Root Path: {RootPath}", RootDir);
+
+            // Thư mục TEMP riêng cho video tạm
+            TempDownloadDir = Path.Combine(Path.GetTempPath(), "VDST", "YoutubeDownloads");
+            if (!Directory.Exists(TempDownloadDir))
+                Directory.CreateDirectory(TempDownloadDir);
         }
 
         /// <summary>
         /// Download Tool yt-dlp.exe từ GitHub
         /// </summary>
-        public async Task DownloadAsync()
+        public async Task DownloadYtbAsync()
         {
             // nếu có roothPath rồi thì thôi
             if (File.Exists(RootPathExe))
@@ -94,7 +101,106 @@ namespace VDST.Repositories
                 }
             }
         }
+        private Process RunCMDWithProgress(string cmd)
+        {
+            if (!File.Exists(RootPathExe))
+                throw new Exception($"{_fileName} not found");
 
+            var process = new Process();
+            process.StartInfo.FileName = "cmd.exe";
+            process.StartInfo.Arguments = $"/c {cmd}";
+            process.StartInfo.WorkingDirectory = RootDir;
+            process.StartInfo.RedirectStandardOutput = true;
+            process.StartInfo.RedirectStandardError = true;
+            process.StartInfo.UseShellExecute = false;
+            process.StartInfo.CreateNoWindow = true;
+            process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
+            return process;
+        }
+
+        /// <summary>
+        /// Tạo process chạy yt-dlp để tải video về thư mục RootDir,
+        /// với tên file dạng "%(id)s.%(ext)s"
+        /// </summary>
+        // Trong YoutubeRepository.cs
+
+        public Process DownloadVideoAsyncWithProgress(string url)
+        {
+            // 1. Dùng TempDownloadDir thay vì RootDir để chứa file video tạm (cho sạch)
+            var outTemplate = Path.Combine(TempDownloadDir, "%(id)s.%(ext)s");
+
+            // 2. Lấy đường dẫn thư mục chứa ffmpeg.exe (Là thư mục RootDir của bạn)
+            string ffmpegLocation = FFmpegRepositories.Instance.FfmpegDir;
+           
+
+            var cmd = $"{_fileName} -f \"bv*+ba/b\" --merge-output-format mp4 " +
+                      $"--ffmpeg-location \"{ffmpegLocation}\" " +
+                      $"--no-warnings -o \"{outTemplate}\" \"{url}\"";
+
+            Log.Information("Running download command: {cmd}", cmd);
+
+            // Gọi hàm chạy CMD (Lưu ý: RunCMDWithProgress của bạn đang set WorkingDirectory là RootDir -> OK)
+            var process = RunCMDWithProgress(cmd);
+            return process;
+        }
+
+
+        /// <summary>
+        /// Phân tích output của yt-dlp để tìm tên file .mp4 đã tải về trong thư mục RootDir
+        /// </summary>
+        public string ProcessOutputDownload(string output, string id)
+        {
+            // 1. Ưu tiên file có tên [id].mp4 vì đã cấu hình outTemplate như vậy
+            var finalPath = Path.Combine(TempDownloadDir, $"{id}.mp4");
+            if (File.Exists(finalPath))
+                return finalPath;
+
+            // 2. Nếu vì lý do nào đó tên không đúng id.mp4, thử parse log để lấy file mp4 bất kỳ
+            var lines = output?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                        ?? Array.Empty<string>();
+            var regex = new Regex(@".{1,}""(.{1,})""");
+
+            foreach (var line in lines)
+            {
+                var match = regex.Match(line);
+                if (!match.Success)
+                    continue;
+
+                var fileName = match.Groups[1].Value?.Trim();
+                if (string.IsNullOrEmpty(fileName))
+                    continue;
+
+                if (!fileName.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                string path;
+                if (Path.IsPathRooted(fileName))
+                {
+                    // log đã in full path
+                    path = fileName;
+                }
+                else
+                {
+                    // chỉ in file name → ghép vào TempDownloadDir
+                    path = Path.Combine(TempDownloadDir, fileName);
+                }
+
+                if (File.Exists(path))
+                    return path;
+            }
+
+            // 3. Fallback cuối: tìm file *.mp4 nào chứa id trong tên
+            var files = Directory.GetFiles(TempDownloadDir, $"*{id}*.mp4");
+            if (files.Length > 0)
+                return files[0];
+
+            return string.Empty;
+        }
+
+
+        /// <summary>
+        /// Run CMD bất đồng bộ và trả về stdout
+        /// </summary>
         private async Task<string> RunCMDAsync(string cmd)
         {
             // 1: Cấu hình process để chạy "cmd /c [lệnh]"
@@ -122,12 +228,15 @@ namespace VDST.Repositories
             return output;
         }
 
+
+
         /// <summary>
         /// Get Youtube Detail từ URL video
         /// </summary>
         public async Task<YoutubeDetailDTO> GetYoutubeDetailAsync(string url)
         {
-            await DownloadAsync();
+            //1. check xem đã có yt-dlp.exe chưa và tải về nếu chưa có
+            await DownloadYtbAsync();
 
             // 2. Gọi yt-dlp để lấy JSON
             var cmd = $"{_fileName} -j \"{url}\"";
@@ -160,41 +269,15 @@ namespace VDST.Repositories
         }
 
 
-        public async Task DownloadVideoAsync(string url, string outputPath)
-        {
-            try
-            {
-                await DownloadAsync();
-                var dir = Path.GetDirectoryName(outputPath);
-                Log.Information("Download video Youtube từ {Url} về {OutputPath}", url, outputPath);
-                if (!Directory.Exists(dir))
-                    Directory.CreateDirectory(dir);
 
-                // Nếu file đã tồn tại → xóa trước
-                if (File.Exists(outputPath))
-                    File.Delete(outputPath);
-
-                // -f mp4: chọn mp4 tốt nhất, -o: output path
-                var args = $"-f mp4 -o \"{outputPath}\" \"{url}\"";
-                await RunCMDAsync(args);
-            }
-            catch (Exception ex)
-            {
-                Log.Error("Lỗi khi tải video Youtube: {Message}", ex.Message);
-                throw;
-            }
-        }
-
-
-
-
-
+        /// <summary>
+        /// Get Subtitles từ JSON output của yt-dlp
+        /// </summary>
+        /// <returns></returns>
         private List<Model.Youtubes.SubtitleDTO> GetSubtitles(string output, string key)
         {
-            //1: Parse chuỗi JSON gốc
             var root = JObject.Parse(output);
 
-            //2: Lấy object con theo key: "subtitles" hoặc "automatic_captions"
             var subsObj = (JObject)root[key];
             if (subsObj == null)
                 return null;
@@ -224,13 +307,6 @@ namespace VDST.Repositories
         }
 
 
-        //private string ExtractVideoId(string url)
-        //{
-        //    // Logic đơn giản: Lấy sau dấu "=" hoặc "/" cuối cùng
-        //    // (Bạn có thể dùng Regex xịn hơn nếu muốn)
-        //    if (url.Contains("v=")) return url.Split(new[] { "v=" }, StringSplitOptions.None)[1].Split('&')[0];
-        //    if (url.Contains("youtu.be/")) return url.Split(new[] { "youtu.be/" }, StringSplitOptions.None)[1].Split('?')[0];
-        //    return "";
-        //}
+
     }
 }

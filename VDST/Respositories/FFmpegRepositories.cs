@@ -62,25 +62,21 @@ namespace VDST.Respositories
                 Directory.CreateDirectory(FfmpegDir);
             }
 
-            // Nói cho Xabe.FFmpeg biết ffmpeg.exe, ffprobe.exe sẽ nằm ở đây
+            // NXabe.FFmpeg biết ffmpeg.exe, ffprobe.exe sẽ nằm ở đây
             FFmpeg.SetExecutablesPath(FfmpegDir);
             IsInstalled = CheckFfmpegInstalled();
         }
 
+        // check if ffmpeg.exe exists in the FfmpegDir
         private bool CheckFfmpegInstalled()
         {
             var ffmpegPath = Path.Combine(FfmpegDir, "ffmpeg.exe");
             Log.Information("Checking FFmpeg at path: {FfmpegPath}", ffmpegPath);
-            var ffprobePath = Path.Combine(FfmpegDir, "ffprobe.exe");
-            Log.Information("Checking FFprobe at path: {FfprobePath}", ffprobePath);
-
-            // Tối thiểu là phải có ffmpeg.exe
             return File.Exists(ffmpegPath);
-            // Nếu muốn chặt chẽ hơn:
-            // return File.Exists(ffmpegPath) && File.Exists(ffprobePath);
         }
-       
 
+
+        // down load ffmpeg to FfmpegDir
         public async Task DownloadFfmpegAsync()
         {
             if (IsInstalled)
@@ -107,7 +103,7 @@ namespace VDST.Respositories
             catch (Exception ex)
             {
                 Log.Error(ex, "Lỗi khi tải FFmpeg");
-                throw; // cho ViewModel bắt và show MessageBox
+                throw; 
             }
         }
         public async Task EnsureFfmpegAsync()

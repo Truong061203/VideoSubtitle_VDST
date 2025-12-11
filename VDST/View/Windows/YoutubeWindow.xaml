@@ -5,6 +5,7 @@
     xmlns:Icons="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:converters="clr-namespace:VDST.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
     xmlns:local="clr-namespace:VDST.View.Windows"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:uc="clr-namespace:VDST.View.VUserControl"
@@ -18,6 +19,8 @@
     WindowStartupLocation="CenterScreen"
     WindowState="Maximized"
     mc:Ignorable="d">
+
+
     <Window.Resources>
         <converters:VfxConverters x:Key="BooleanVisibility" />
         <Style x:Key="RedBtnStyle" TargetType="Button">
@@ -104,7 +107,7 @@
 
                     <Grid>
                         <uc:TextBoxUC
-                            MinHeight="40"
+                            MinHeight="45"
                             Margin="0,5"
                             FontSize="15"
                             HintText="https://www.youtube.com/watch?v=..."
@@ -126,27 +129,35 @@
             </Grid>
 
             <Grid Grid.Row="2" Margin="0,15,0,0">
-                <Grid Visibility="{Binding IsBusy, Converter={StaticResource BooleanVisibility}}">
-                    <ProgressBar IsIndeterminate="True" Style="{StaticResource CircleStyle}" />
+                <Grid
+                    Margin="0"
+                    Panel.ZIndex="1"
+                    Visibility="{Binding IsLoading, Converter={StaticResource BooleanVisibility}}">
+                    <ProgressBar
+                        Margin="0"
+                        IsIndeterminate="True"
+                        Style="{StaticResource CircleStyle}" />
                 </Grid>
+
                 <Border
                     BorderBrush="LightGray"
                     BorderThickness="1"
                     CornerRadius="10">
-                    <Image Source="{Binding YoutubeVModel.Thumbnail, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Stretch="Fill" />
+                    <Image Source="{Binding youtubeModel.Thumbnail, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Stretch="Fill" />
                 </Border>
+
+                <Border Background="#80000000" Opacity="0.8" />
             </Grid>
             <TextBlock
                 Grid.Row="3"
                 Margin="0,10"
                 FontSize="18"
                 FontWeight="DemiBold"
-                Text="{Binding YoutubeVModel.Title, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+                Text="{Binding youtubeModel.Title, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                 TextWrapping="WrapWithOverflow" />
 
             <Grid Grid.Row="4">
-                <Button Margin="20,0,20,10" 
-                        Command="{Binding DownloadVideoCommand}">
+                <Button Margin="20,0,20,10" Command="{Binding DownloadVideoCommand}">
                     <Button.Style>
                         <Style TargetType="Button">
                             <Setter Property="MinHeight" Value="50" />

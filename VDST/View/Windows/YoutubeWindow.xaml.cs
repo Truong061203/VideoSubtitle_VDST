@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using VDST.ViewModel;
 
 namespace VDST.View.Windows
 {
@@ -22,6 +24,15 @@ namespace VDST.View.Windows
         public YoutubeWindow()
         {
             InitializeComponent();
+            this.Closing += YoutubeWindow_Closing;
+        }
+
+        private void YoutubeWindow_Closing(object sender, CancelEventArgs e)
+        {
+            if (DataContext is YoutubeViewModel vm)
+            {
+                vm.OnWindowClosing();
+            }
         }
     }
 }
