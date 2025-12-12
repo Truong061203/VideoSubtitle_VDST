@@ -63,8 +63,6 @@ namespace VDST.ViewModel
         }
 
 
-
-
         private string _inputUrl;
         public string InputUrl
         {
@@ -77,6 +75,20 @@ namespace VDST.ViewModel
                     Log.Information("Input Url :" + InputUrl);
                     RaisePropertyChanged(nameof(InputUrl));
                     (CheckCommand as VfxCommand)?.RaiseCanExecuteChanged();
+                }
+            }
+        } 
+
+        private string _searchText; 
+        public string SearchText 
+        {
+            get => _searchText; 
+            set
+            {
+                if (_searchText != value)
+                {
+                    _searchText = value; 
+                    RaisePropertyChanged(nameof(SearchText));
                 }
             }
         }

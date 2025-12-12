@@ -129,7 +129,7 @@ namespace VDST.Repositories
             // 1. Dùng TempDownloadDir thay vì RootDir để chứa file video tạm (cho sạch)
             var outTemplate = Path.Combine(TempDownloadDir, "%(id)s.%(ext)s");
 
-            // 2. Lấy đường dẫn thư mục chứa ffmpeg.exe (Là thư mục RootDir của bạn)
+           
             string ffmpegLocation = FFmpegRepositories.Instance.FfmpegDir;
            
 

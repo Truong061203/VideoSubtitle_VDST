@@ -146,7 +146,7 @@
                     <Image Source="{Binding youtubeModel.Thumbnail, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}" Stretch="Fill" />
                 </Border>
 
-                <Border Background="#80000000" Opacity="0.8" />
+                <Border Background="#80000000" Opacity="0.3" />
             </Grid>
             <TextBlock
                 Grid.Row="3"
