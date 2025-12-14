@@ -234,6 +234,7 @@
                         <uc:TextBoxUC
                             MinHeight="40"
                             Margin="0,5"
+                            KeyDown="TextBoxUC_KeyDown"
                             FontSize="15"
                             HintText="Language Search ..."
                             Text="{Binding YoutubeUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />

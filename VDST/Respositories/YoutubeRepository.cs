@@ -126,7 +126,7 @@ namespace VDST.Repositories
 
         public Process DownloadVideoAsyncWithProgress(string url)
         {
-            // 1. Dùng TempDownloadDir thay vì RootDir để chứa file video tạm (cho sạch)
+          
             var outTemplate = Path.Combine(TempDownloadDir, "%(id)s.%(ext)s");
 
            

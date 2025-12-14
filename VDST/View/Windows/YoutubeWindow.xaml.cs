@@ -34,5 +34,16 @@ namespace VDST.View.Windows
                 vm.OnWindowClosing();
             }
         }
+
+        private void TextBoxUC_KeyDown(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter)
+            {
+                if (DataContext is YoutubeViewModel vm)
+                {
+                    vm.CheckCommand.CanExecute(null);
+                }
+            }
+        }
     }
 }

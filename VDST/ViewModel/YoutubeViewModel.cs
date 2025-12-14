@@ -58,7 +58,6 @@ namespace VDST.ViewModel
                 _selectedSubtitle = value;
                 RaisePropertyChanged(nameof(SelectedSubtitle));
                 (DownloadSubtitleFileCommand as VfxCommand)?.RaiseCanExecuteChanged();
-                (ExportSubtitleTextCommand as VfxCommand)?.RaiseCanExecuteChanged();
             }
         }
 
@@ -77,18 +76,20 @@ namespace VDST.ViewModel
                     (CheckCommand as VfxCommand)?.RaiseCanExecuteChanged();
                 }
             }
-        } 
+        }
 
-        private string _searchText; 
-        public string SearchText 
+        private string _searchSubText;
+        public string SearchSubText
         {
-            get => _searchText; 
+            get => _searchSubText;
             set
             {
-                if (_searchText != value)
+                if (_searchSubText != value)
                 {
-                    _searchText = value; 
-                    RaisePropertyChanged(nameof(SearchText));
+                    _searchSubText = value;
+                    Log.Information("Search Text : " + SearchSubText);
+                    RaisePropertyChanged(nameof(SearchSubText));
+                    FilterSubtitles();
                 }
             }
         }
@@ -105,21 +106,54 @@ namespace VDST.ViewModel
         public ICommand CheckCommand { get; set; }
         public ICommand DownloadVideoCommand { get; }
         public ICommand DownloadSubtitleFileCommand { get; }
-        public ICommand ExportSubtitleTextCommand { get; }
 
         public YoutubeViewModel(string _url)
         {
             DownloadVideoCommand = new VfxCommand(OnDownloadVideo, CanDownloadVideo);
+            DownloadSubtitleFileCommand = new VfxCommand(OnDownloadSubtitleFile, CanDownloadSubtitleFile);
             CheckCommand = new VfxCommand(OnCheck, CanCheck);
             InputUrl = _url;
 
             if (_url != null)
             {
-                LoadInfoAsync(_url);
+                _ = LoadInfoAsync(_url);
             }
         }
 
+        private bool CanDownloadSubtitleFile()
+        {
+            if (SelectedSubtitle != null && !IsLoading)
+                return true;
+            return false;
+        }
 
+        private void OnDownloadSubtitleFile(object obj)
+        {
+
+
+        }
+
+        public void FilterSubtitles()
+        {
+            youtubeModel.Subtitles.Clear();
+            if (string.IsNullOrEmpty(SearchSubText))
+            {
+                foreach (var item in youtubeModel.SubFilters)
+                    youtubeModel.Subtitles.Add(item);
+            }
+            else
+            {
+                // Nếu có từ khóa -> Lọc theo Tên hoặc Mã ngôn ngữ
+                var keyword = SearchSubText.ToLower();
+                var results = youtubeModel.Subtitles.Where(x =>
+                    (x.Name != null && x.Name.ToLower().Contains(keyword)) ||
+                    (x.Language != null && x.Language.ToLower().Contains(keyword))
+                );
+
+                foreach (var item in results)
+                    youtubeModel.SubFilters.Add(item);
+            }
+        }
         public void OnWindowClosing()
         {
             try

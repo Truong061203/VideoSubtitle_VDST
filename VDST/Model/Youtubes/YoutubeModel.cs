@@ -14,8 +14,8 @@ namespace VDST.Model.Youtubes
     public class YoutubeModel : ViewModelBase
     { 
 
-        // sự kiện khi ThumbnailPath thay đổi
-        public event EventHandler ThumbnailPathChanged;
+         // sự kiện khi ThumbnailPath thay đổi
+       //public event EventHandler ThumbnailPathChanged;
 
         private string _url = string.Empty;
         public string Url
@@ -104,7 +104,7 @@ namespace VDST.Model.Youtubes
                     Log.Information("YTB ThumbnailPath in Model :" + ThumbnailPath);
                     RaisePropertyChanged(nameof(ThumbnailPath));
                 }
-                ThumbnailPathChanged?.Invoke(this, EventArgs.Empty);
+                //ThumbnailPathChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
