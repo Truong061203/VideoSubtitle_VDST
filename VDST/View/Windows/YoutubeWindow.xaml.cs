@@ -37,11 +37,30 @@ namespace VDST.View.Windows
 
         private void TextBoxUC_KeyDown(object sender, KeyEventArgs e)
         {
-            if(e.Key == Key.Enter)
+            if (e.Key == Key.Enter)
             {
+                e.Handled = true;
+
                 if (DataContext is YoutubeViewModel vm)
                 {
-                    vm.CheckCommand.CanExecute(null);
+                    vm.FilterSubtitles();   // đọc SearchSubText mới nhất
+                    Keyboard.ClearFocus();  // cho UX đẹp
+                }
+            }
+        }
+
+        private void TextBoxUC_KeyDown_1(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                e.Handled = true;
+
+
+                if (this.DataContext is YoutubeViewModel vm)
+                {
+                    vm.OnCheck(null);
+
+                    Keyboard.ClearFocus();
                 }
             }
         }

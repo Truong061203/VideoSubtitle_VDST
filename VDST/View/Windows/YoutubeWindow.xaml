@@ -111,6 +111,7 @@
                             Margin="0,5"
                             FontSize="15"
                             HintText="https://www.youtube.com/watch?v=..."
+                            KeyDown="TextBoxUC_KeyDown_1"
                             Text="{Binding InputUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                         <Button
                             Margin="0,0,5,0"
@@ -212,8 +213,7 @@
         <Grid Grid.Column="2" Margin="0,10">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
-                <RowDefinition Height="auto" />
-                <RowDefinition />
+                <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
             <Border BorderBrush="LightGray" BorderThickness="0,0,0,1">
@@ -232,17 +232,167 @@
                         TextWrapping="Wrap" />
                     <Grid Grid.Column="1" Margin="0,5,10,0">
                         <uc:TextBoxUC
+                            x:Name="txtLink"
                             MinHeight="40"
                             Margin="0,5"
-                            KeyDown="TextBoxUC_KeyDown"
                             FontSize="15"
-                            HintText="Language Search ..."
-                            Text="{Binding YoutubeUrl, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                            HintText="Nhập ngôn ngữ để tìm kiếm  ..."
+                            KeyDown="TextBoxUC_KeyDown"
+                            Text="{Binding SearchSubText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     </Grid>
                 </Grid>
-
             </Border>
-            <Grid Grid.Row="1" />
+
+
+            <ListBox
+                Grid.Row="1"
+                Margin="10"
+                HorizontalContentAlignment="Stretch"
+                Background="Transparent"
+                BorderThickness="0"
+                ItemsSource="{Binding youtubeModel.SubFilters}"
+                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+
+                <ListBox.ItemContainerStyle>
+                    <Style TargetType="ListBoxItem">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Setter Property="BorderThickness" Value="0" />
+                        <Setter Property="Margin" Value="0,0,0,8" />
+                        <Setter Property="Padding" Value="0" />
+
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="ListBoxItem">
+                                    <Border
+                                        x:Name="border"
+                                        Padding="{TemplateBinding Padding}"
+                                        Background="#FAFAFA"
+                                        BorderBrush="#E5E7EB"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        SnapsToDevicePixels="true">
+                                        <ContentPresenter />
+                                    </Border>
+
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="White" />
+                                            <Setter TargetName="border" Property="BorderBrush" Value="Black" />
+                                        </Trigger>
+
+                                        <Trigger Property="IsSelected" Value="True">
+                                            <Setter TargetName="border" Property="Background" Value="Azure" />
+                                            <Setter TargetName="border" Property="BorderBrush" Value="Black" />
+                                            <Setter TargetName="border" Property="BorderThickness" Value="1" />
+                                        </Trigger>
+
+
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </ListBox.ItemContainerStyle>
+
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <Grid Height="50" Margin="10,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <Border
+                                Grid.Column="0"
+                                Width="40"
+                                Height="32"
+                                Margin="0,0,15,0"
+                                VerticalAlignment="Center"
+                                Background="#E2E8F0"
+                                CornerRadius="6">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="13"
+                                    FontWeight="Bold"
+                                    Foreground="#475569"
+                                    Text="{Binding Language}" />
+                            </Border>
+
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                FontSize="14"
+                                FontWeight="SemiBold"
+                                Foreground="#1E293B"
+                                Text="{Binding Name}"
+                                TextTrimming="CharacterEllipsis" />
+
+                            <Button
+                                Grid.Column="2"
+                                Margin="8"
+                                Command="{Binding DataContext.DownloadSubtitleFileCommand, RelativeSource={RelativeSource AncestorType=ListBox}}"
+                                CommandParameter="{Binding}"
+                                Content="Tải xuống"
+                                Cursor="Hand"
+                                FontSize="13"
+                                FontWeight="Medium">
+                                <Button.Style>
+                                    <Style TargetType="Button">
+                                        <!--  Trạng thái bình thường  -->
+                                        <Setter Property="Background" Value="White" />
+                                        <Setter Property="Foreground" Value="Black" />
+                                        <Setter Property="BorderThickness" Value="1" />
+                                        <Setter Property="BorderBrush" Value="#0F172A" />
+                                        <Setter Property="Width" Value="100" />
+
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="Button">
+                                                    <Border
+                                                        Background="{TemplateBinding Background}"
+                                                        BorderBrush="{TemplateBinding BorderBrush}"
+                                                        BorderThickness="{TemplateBinding BorderThickness}"
+                                                        CornerRadius="6"
+                                                        SnapsToDevicePixels="true">
+                                                        <!--  Quan trọng: truyền Foreground xuống nội dung  -->
+                                                        <ContentPresenter
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            TextElement.Foreground="{TemplateBinding Foreground}" />
+                                                    </Border>
+
+                                                    <ControlTemplate.Triggers>
+                                                        <!--  Hover  -->
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="#D32F2F" />
+                                                            <Setter Property="Foreground" Value="White" />
+                                                            <Setter Property="BorderBrush" Value="#D32F2F" />
+                                                        </Trigger>
+
+                                                        <!--  Pressed  -->
+                                                        <Trigger Property="IsPressed" Value="True">
+                                                            <Setter Property="Background" Value="#B71C1C" />
+                                                            <Setter Property="Foreground" Value="White" />
+                                                        </Trigger>
+
+                                                        <!--  Disabled  -->
+                                                        <Trigger Property="IsEnabled" Value="False">
+                                                            <Setter Property="Opacity" Value="0.6" />
+                                                            <Setter Property="Background" Value="#F5F5F5" />
+                                                        </Trigger>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
 
 

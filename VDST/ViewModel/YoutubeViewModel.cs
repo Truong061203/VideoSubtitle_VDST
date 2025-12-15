@@ -101,7 +101,6 @@ namespace VDST.ViewModel
         // BIẾN KẾT QUẢ (Để trả về cho màn hình cha)
         //public string DownloadedVideoPath { get; private set; }
 
-        private readonly HttpClient _httpClient = new HttpClient();
 
         public ICommand CheckCommand { get; set; }
         public ICommand DownloadVideoCommand { get; }
@@ -110,7 +109,7 @@ namespace VDST.ViewModel
         public YoutubeViewModel(string _url)
         {
             DownloadVideoCommand = new VfxCommand(OnDownloadVideo, CanDownloadVideo);
-            DownloadSubtitleFileCommand = new VfxCommand(OnDownloadSubtitleFile, CanDownloadSubtitleFile);
+            DownloadSubtitleFileCommand = new VfxCommand(OnDownloadSubtitleFile, () => true);
             CheckCommand = new VfxCommand(OnCheck, CanCheck);
             InputUrl = _url;
 
@@ -120,38 +119,113 @@ namespace VDST.ViewModel
             }
         }
 
-        private bool CanDownloadSubtitleFile()
+        private async void OnDownloadSubtitleFile(object obj)
         {
-            if (SelectedSubtitle != null && !IsLoading)
-                return true;
-            return false;
-        }
+            System.Windows.MessageBox.Show("chức năn đg dược kích hoạt");
+            // 1. Nhận dữ liệu từ nút bấm (Thay cho việc ép kiểu sender)
+            if (obj is SubtitleFormatModel model)
+            {
+                // 2. Mở hộp thoại chọn nơi lưu (Logic Senior)
+                var saveFileDialog = new Microsoft.Win32.SaveFileDialog()
+                {
+                    Title = "Lưu phụ đề",
+                    Filter = "Subtitles files (*.srt)|*.srt",
+                    RestoreDirectory = true,
+                    // Mẹo: Tự điền tên file đẹp [Tên Video].[Lang].srt cho tiện
+                    FileName = $"{model.Language}.srt"
+                };
 
-        private void OnDownloadSubtitleFile(object obj)
-        {
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    var finalPath = saveFileDialog.FileName;
 
+                    // Tạo file tạm để tải về trước (Tránh lỗi file đích đang mở)
+                    var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".tmp");
 
+                    try
+                    {
+                        IsLoading = true; // Bật trạng thái bận
+
+                        // 3. Thực thi tải bằng HttpClient (Logic Senior)
+                        var httpClient = new HttpClient()
+                        {
+                            Timeout = TimeSpan.FromSeconds(60),
+                        };
+                        var response = await httpClient.GetAsync(model.Url);
+
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var content = await response.Content.ReadAsStringAsync();
+
+                            if (string.IsNullOrWhiteSpace(content))
+                                throw new Exception("Nội dung phụ đề rỗng.");
+
+                            // Ghi nội dung vào file tạm
+                            File.WriteAllText(tempFile, content);
+
+                            // 4. Di chuyển file tạm sang file đích
+                            if (File.Exists(finalPath))
+                                File.Delete(finalPath); // Xóa nếu trùng
+                            File.Move(tempFile, finalPath);
+
+                            // 5. Thông báo thành công & Mở thư mục
+                            var result = System.Windows.MessageBox.Show("Tải file phụ đề thành công!\nBạn có muốn mở thư mục chứa file không?",
+                                                         "Phụ đề", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                            if (result == MessageBoxResult.Yes)
+                            {
+                                // Mở Explorer và chọn sẵn file đó
+                                Process.Start("explorer.exe", $"/select, \"{finalPath}\"");
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception($"Lỗi tải: {response.StatusCode}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                    finally
+                    {
+                        IsLoading = false; // Tắt trạng thái bận
+
+                        // Dọn dẹp file rác
+                        if (File.Exists(tempFile)) File.Delete(tempFile);
+                    }
+                }
+            }
         }
 
         public void FilterSubtitles()
         {
-            youtubeModel.Subtitles.Clear();
+            if (youtubeModel.Subtitles == null || youtubeModel.Subtitles.Count == 0)
+                return;
+
+            youtubeModel.SubFilters.Clear();
+
             if (string.IsNullOrEmpty(SearchSubText))
             {
-                foreach (var item in youtubeModel.SubFilters)
-                    youtubeModel.Subtitles.Add(item);
+                foreach (var item in youtubeModel.Subtitles)
+                {
+                    youtubeModel.SubFilters.Add(item);
+                }
             }
             else
             {
-                // Nếu có từ khóa -> Lọc theo Tên hoặc Mã ngôn ngữ
-                var keyword = SearchSubText.ToLower();
+                // Trường hợp có tìm kiếm: Lọc từ GỐC -> Đổ vào HIỂN THỊ
+                var keyword = SearchSubText.ToLower().Trim();
+
                 var results = youtubeModel.Subtitles.Where(x =>
                     (x.Name != null && x.Name.ToLower().Contains(keyword)) ||
                     (x.Language != null && x.Language.ToLower().Contains(keyword))
                 );
 
                 foreach (var item in results)
+                {
                     youtubeModel.SubFilters.Add(item);
+                }
             }
         }
         public void OnWindowClosing()
@@ -305,9 +379,7 @@ namespace VDST.ViewModel
 
         private bool CanCheck()
         {
-            if (string.IsNullOrWhiteSpace(InputUrl) != null && !IsLoading)
-                return true;
-            return false;
+            return !string.IsNullOrWhiteSpace(InputUrl) && !IsLoading;
         }
 
 
@@ -416,7 +488,7 @@ namespace VDST.ViewModel
         /// check url và load info
         /// </summary>
         /// <param name="obj"></param>
-        private async void OnCheck(object obj)
+        public async void OnCheck(object obj)
         {
             try
             {

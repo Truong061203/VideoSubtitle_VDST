@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -32,6 +33,7 @@ namespace VDST.Model.Youtubes
                 if (_name != value)
                 {
                     _name = value;
+                    Log.Information("SubtitleFormatModel Name changed to: {Name}", _name);
                     RaisePropertyChanged(nameof(Name));
                 }
             }
@@ -46,6 +48,7 @@ namespace VDST.Model.Youtubes
                 if (_vietnameseName != value)
                 {
                     _vietnameseName = value;
+                    Log.Information("SubtitleFormatModel VietnameseName changed to: {VietnameseName}", _vietnameseName);
                     RaisePropertyChanged(nameof(VietnameseName));
                 }
             }
@@ -60,6 +63,7 @@ namespace VDST.Model.Youtubes
                 if (_language != value)
                 {
                     _language = value;
+                    Log.Information("SubtitleFormatModel Language changed to: {Language}", _language);
                     RaisePropertyChanged(nameof(Language));
                 }
             }
@@ -75,6 +79,7 @@ namespace VDST.Model.Youtubes
                 if (_ext != value)
                 {
                     _ext = value;
+                    Log.Information("SubtitleFormatModel Ext changed to: {Ext}", _ext);
                     RaisePropertyChanged(nameof(Ext));
                 }
             }
@@ -90,6 +95,7 @@ namespace VDST.Model.Youtubes
                 if (_url != value)
                 {
                     _url = value;
+                    Log.Information("SubtitleFormatModel Url changed to: {Url}", _url);
                     RaisePropertyChanged(nameof(Url));
                 }
             }
@@ -105,6 +111,7 @@ namespace VDST.Model.Youtubes
                 if (_source != value)
                 {
                     _source = value;
+                    Log.Information("SubtitleFormatModel Source changed to: {Source}", _source);
                     RaisePropertyChanged(nameof(Source));
                 }
             }
