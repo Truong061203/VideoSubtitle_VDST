@@ -152,7 +152,6 @@ namespace VDST.ViewModel
                 System.Windows.MessageBox.Show("Đã có lỗi xảy ra khi kiểm tra link youtube.\r\n" +
                                     "Vui lòng thử lại sau.",
                                     "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-
             }
         }
 

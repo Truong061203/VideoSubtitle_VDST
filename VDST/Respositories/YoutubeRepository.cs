@@ -126,20 +126,18 @@ namespace VDST.Repositories
 
         public Process DownloadVideoAsyncWithProgress(string url)
         {
-          
+
             var outTemplate = Path.Combine(TempDownloadDir, "%(id)s.%(ext)s");
 
-           
+
             string ffmpegLocation = FFmpegRepositories.Instance.FfmpegDir;
-           
+
 
             var cmd = $"{_fileName} -f \"bv*+ba/b\" --merge-output-format mp4 " +
                       $"--ffmpeg-location \"{ffmpegLocation}\" " +
                       $"--no-warnings -o \"{outTemplate}\" \"{url}\"";
 
             Log.Information("Running download command: {cmd}", cmd);
-
-            // Gọi hàm chạy CMD (Lưu ý: RunCMDWithProgress của bạn đang set WorkingDirectory là RootDir -> OK)
             var process = RunCMDWithProgress(cmd);
             return process;
         }
@@ -176,7 +174,7 @@ namespace VDST.Repositories
                 string path;
                 if (Path.IsPathRooted(fileName))
                 {
-                    // log đã in full path
+
                     path = fileName;
                 }
                 else
@@ -248,7 +246,7 @@ namespace VDST.Repositories
 
             // 3. Parse JSON thành DTO
             var dto = JsonConvert.DeserializeObject<Model.Youtubes.YoutubeDetailDTO>(output);
-            Log.Information("Youtube Detail DTO: {dto}", dto);
+
             if (dto == null)
                 return null;
 
@@ -260,7 +258,7 @@ namespace VDST.Repositories
 
             //5: Lấy subtitles gốc(subtitles) và gán vào DTO
             var autoSubtiles = GetSubtitles(output, "automatic_captions");
-            Log.Information("Automatic Subtitles: {autoSubtiles}", autoSubtiles);
+            Log.Information("Automatic Subtitles: {autoSubtiles}", autoSubtiles.ToString());
             if (autoSubtiles != null)
                 dto.AutoSubs = autoSubtiles.ToArray();
 

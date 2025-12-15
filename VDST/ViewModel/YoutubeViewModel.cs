@@ -43,21 +43,8 @@ namespace VDST.ViewModel
                 _isLoading = value;
                 Log.Information("Isbusy :" + value);
                 RaisePropertyChanged(nameof(IsLoading));
-
                 (CheckCommand as VfxCommand)?.RaiseCanExecuteChanged();
                 (DownloadVideoCommand as VfxCommand)?.RaiseCanExecuteChanged();
-            }
-        }
-
-        private SubtitleDTO _selectedSubtitle;
-        public SubtitleDTO SelectedSubtitle
-        {
-            get => _selectedSubtitle;
-            set
-            {
-                _selectedSubtitle = value;
-                RaisePropertyChanged(nameof(SelectedSubtitle));
-                (DownloadSubtitleFileCommand as VfxCommand)?.RaiseCanExecuteChanged();
             }
         }
 
@@ -89,7 +76,6 @@ namespace VDST.ViewModel
                     _searchSubText = value;
                     Log.Information("Search Text : " + SearchSubText);
                     RaisePropertyChanged(nameof(SearchSubText));
-                    FilterSubtitles();
                 }
             }
         }
@@ -121,8 +107,7 @@ namespace VDST.ViewModel
 
         private async void OnDownloadSubtitleFile(object obj)
         {
-            System.Windows.MessageBox.Show("chức năn đg dược kích hoạt");
-            // 1. Nhận dữ liệu từ nút bấm (Thay cho việc ép kiểu sender)
+          
             if (obj is SubtitleFormatModel model)
             {
                 // 2. Mở hộp thoại chọn nơi lưu (Logic Senior)
@@ -144,9 +129,9 @@ namespace VDST.ViewModel
 
                     try
                     {
-                        IsLoading = true; // Bật trạng thái bận
+                        IsLoading = true; 
 
-                        // 3. Thực thi tải bằng HttpClient (Logic Senior)
+                        
                         var httpClient = new HttpClient()
                         {
                             Timeout = TimeSpan.FromSeconds(60),
@@ -282,7 +267,7 @@ namespace VDST.ViewModel
             _currentDownloadProcess = null;
             try
             {
-                await FFmpegRepositories.Instance.EnsureFfmpegAsync();         // ffmpeg
+                await FFmpegRepositories.Instance.EnsureFfmpegAsync();       
 
                 var process = YoutubeRepository.Instance.DownloadVideoAsyncWithProgress(youtubeModel.Url);
                 _currentDownloadProcess = process;
@@ -427,9 +412,8 @@ namespace VDST.ViewModel
 
                 // 4. Build subtitles
                 var original = detail.OriginSubs;
-                Log.Information("OriginSub :" + original.ToString());
-                var auto = detail.AutoSubs;
-                Log.Information("Auto :" + auto.ToString());
+                var autoSubtitle = detail.AutoSubs;
+               
 
                 if (original != null && original.Length > 0)
                 {
@@ -451,9 +435,9 @@ namespace VDST.ViewModel
                     }
                 }
 
-                if (youtubeModel.Subtitles.Count == 0 && auto != null && auto.Length > 0)
+                if (youtubeModel.Subtitles.Count == 0 && autoSubtitle != null && autoSubtitle.Length > 0)
                 {
-                    var unique = auto
+                    var unique = autoSubtitle
                         .GroupBy(x => x.LanguageCode)
                         .Select(g => g.FirstOrDefault(s => s.Ext == "srt") ?? g.First())
                         .ToList();

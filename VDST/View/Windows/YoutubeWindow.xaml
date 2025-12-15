@@ -247,11 +247,10 @@
             <ListBox
                 Grid.Row="1"
                 Margin="10"
-                HorizontalContentAlignment="Stretch"
                 Background="Transparent"
                 BorderThickness="0"
                 ItemsSource="{Binding youtubeModel.SubFilters}"
-                ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                ScrollViewer.HorizontalScrollBarVisibility="Hidden">
 
                 <ListBox.ItemContainerStyle>
                     <Style TargetType="ListBoxItem">

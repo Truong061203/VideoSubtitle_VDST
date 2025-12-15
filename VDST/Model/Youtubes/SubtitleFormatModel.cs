@@ -10,20 +10,9 @@ namespace VDST.Model.Youtubes
 {
     public class SubtitleFormatModel :ViewModelBase
     {
-        private bool _isChecked;
-        public bool IsChecked
-        {
-            get => _isChecked;
-            set
-            {
-                if (_isChecked != value)
-                {
-                    _isChecked = value;
-                    RaisePropertyChanged(nameof(IsChecked));
-                }
-            }
-        }
 
+
+        // name của phụ đề english, vietnamese, ...
         private string _name;
         public string Name
         {
@@ -39,6 +28,7 @@ namespace VDST.Model.Youtubes
             }
         }
 
+        // tên phụ đề tiếng việt 
         private string _vietnameseName;
         public string VietnameseName
         {
@@ -54,6 +44,7 @@ namespace VDST.Model.Youtubes
             }
         }
 
+        // ngôn ngữ của phụ đề viết tắt en, vi, jp, ...
         private string _language;
         public string Language
         {
@@ -69,7 +60,7 @@ namespace VDST.Model.Youtubes
             }
         }
 
-        // đuổi file của phụ đề
+        // đuổi file của phụ đề vtt, srt, ...
         private string _ext;
         public string Ext
         {
@@ -86,6 +77,7 @@ namespace VDST.Model.Youtubes
         }
 
 
+        // url tải phụ đề
         private string _url;
         public string Url
         {
@@ -101,7 +93,7 @@ namespace VDST.Model.Youtubes
             }
         }
 
-        // sub gốc hoặc sub auto
+        // source của phụ đề (youtube, ...)
         private string _source;
         public string Source
         {

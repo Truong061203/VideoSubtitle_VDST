@@ -11,11 +11,13 @@ using VDST.ViewModel;
 
 namespace VDST.Model.Youtubes
 {
-    public class YoutubeModel : ViewModelBase
-    { 
 
-         // sự kiện khi ThumbnailPath thay đổi
-       //public event EventHandler ThumbnailPathChanged;
+    // Model chứa thông tin video Youtube
+    public class YoutubeModel : ViewModelBase
+    {
+
+        // sự kiện khi ThumbnailPath thay đổi
+        //public event EventHandler ThumbnailPathChanged;
 
         private string _url = string.Empty;
         public string Url
@@ -70,7 +72,7 @@ namespace VDST.Model.Youtubes
             {
                 if (_videoPath != value)
                 {
-                    _videoPath = value; 
+                    _videoPath = value;
                     Log.Information("YTB VideoPath in Model :" + VideoPath);
                     RaisePropertyChanged(nameof(VideoPath));
                 }
@@ -85,7 +87,7 @@ namespace VDST.Model.Youtubes
             {
                 if (_subtitlePath != value)
                 {
-                    _subtitlePath = value; 
+                    _subtitlePath = value;
                     Log.Information("YTB SubtitlePath in Model :" + SubtitlePath);
                     RaisePropertyChanged(nameof(SubtitlePath));
                 }
@@ -100,7 +102,7 @@ namespace VDST.Model.Youtubes
             {
                 if (_thumbnailPath != value)
                 {
-                    _thumbnailPath = value; 
+                    _thumbnailPath = value;
                     Log.Information("YTB ThumbnailPath in Model :" + ThumbnailPath);
                     RaisePropertyChanged(nameof(ThumbnailPath));
                 }
@@ -132,11 +134,12 @@ namespace VDST.Model.Youtubes
         //Danh sách phụ đề đang hiển thị (sau khi filter tìm kiếm)
         public ObservableCollection<SubtitleFormatModel> SubFilters { get; set; } = new ObservableCollection<SubtitleFormatModel>();
 
+        // Id của video trên Youtube
         public string VideoId { get; set; }
 
         public YoutubeModel()
         {
         }
     }
-  
+
 }
