@@ -73,6 +73,9 @@ namespace VDST.ViewModel
 
         #endregion
 
+        /// <summary>
+        /// Load project data from file path
+        /// </summary>
         public void LoadProjectData(string projectFilePath)
         {
             if (File.Exists(projectFilePath))
@@ -98,6 +101,9 @@ namespace VDST.ViewModel
 
         }
 
+        /// <summary>
+        /// Upload video file mp4
+        /// </summary>
         private void OnUpload(object obj)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -117,6 +123,10 @@ namespace VDST.ViewModel
             return true;
         }
 
+
+        /// <summary>
+        /// Check link youtube 
+        /// </summary>
         private void OnCheck(object obj)
         {
             try
@@ -134,10 +144,10 @@ namespace VDST.ViewModel
                 }
 
                 var urlLink = $"https://www.youtube.com/watch?v={id}";
-               
+
                 // gán nó cho datacontext của downloadVideoVM
                 var ytbVM = new YoutubeViewModel(urlLink);
-    
+
                 //gán vm cho view 
                 var ytbWindow = new YoutubeWindow();
                 ytbWindow.DataContext = ytbVM;

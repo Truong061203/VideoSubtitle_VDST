@@ -45,6 +45,7 @@ namespace VDST.ViewModel
                 RaisePropertyChanged(nameof(IsLoading));
                 (CheckCommand as VfxCommand)?.RaiseCanExecuteChanged();
                 (DownloadVideoCommand as VfxCommand)?.RaiseCanExecuteChanged();
+                (DownloadSubtitleFileCommand as VfxCommand)?.RaiseCanExecuteChanged();
             }
         }
 
@@ -95,7 +96,7 @@ namespace VDST.ViewModel
         public YoutubeViewModel(string _url)
         {
             DownloadVideoCommand = new VfxCommand(OnDownloadVideo, CanDownloadVideo);
-            DownloadSubtitleFileCommand = new VfxCommand(OnDownloadSubtitleFile, () => true);
+            DownloadSubtitleFileCommand = new VfxCommand(OnDownloadSubtitleFile, CanDownLoadSub);
             CheckCommand = new VfxCommand(OnCheck, CanCheck);
             InputUrl = _url;
 
@@ -105,9 +106,20 @@ namespace VDST.ViewModel
             }
         }
 
+        private bool CanDownLoadSub()
+        {
+            if (IsLoading)
+                return false;
+            return true;
+        }
+
+
+        /// <summary>
+        /// Download file subtitle .srt
+        /// </summary>
         private async void OnDownloadSubtitleFile(object obj)
         {
-          
+
             if (obj is SubtitleFormatModel model)
             {
                 // 2. Mở hộp thoại chọn nơi lưu (Logic Senior)
@@ -116,8 +128,6 @@ namespace VDST.ViewModel
                     Title = "Lưu phụ đề",
                     Filter = "Subtitles files (*.srt)|*.srt",
                     RestoreDirectory = true,
-                    // Mẹo: Tự điền tên file đẹp [Tên Video].[Lang].srt cho tiện
-                    FileName = $"{model.Language}.srt"
                 };
 
                 if (saveFileDialog.ShowDialog() == true)
@@ -129,9 +139,7 @@ namespace VDST.ViewModel
 
                     try
                     {
-                        IsLoading = true; 
-
-                        
+                        IsLoading = true;
                         var httpClient = new HttpClient()
                         {
                             Timeout = TimeSpan.FromSeconds(60),
@@ -174,15 +182,18 @@ namespace VDST.ViewModel
                     }
                     finally
                     {
-                        IsLoading = false; // Tắt trạng thái bận
-
+                        IsLoading = false;
                         // Dọn dẹp file rác
-                        if (File.Exists(tempFile)) File.Delete(tempFile);
+                        if (File.Exists(tempFile))
+                            File.Delete(tempFile);
                     }
                 }
             }
         }
 
+        /// <summary>
+        /// Filter subtitle list
+        /// </summary>
         public void FilterSubtitles()
         {
             if (youtubeModel.Subtitles == null || youtubeModel.Subtitles.Count == 0)
@@ -213,6 +224,10 @@ namespace VDST.ViewModel
                 }
             }
         }
+
+        /// <summary>
+        /// close window cleanup
+        /// </summary>
         public void OnWindowClosing()
         {
             try
@@ -249,8 +264,11 @@ namespace VDST.ViewModel
         /// <summary>
         /// Download video from youtube
         /// </summary>
+        // Trong YoutubeViewModel.cs
+
         private async void OnDownloadVideo(object obj)
         {
+            // 1. Chọn nơi lưu
             var dlg = new Microsoft.Win32.SaveFileDialog
             {
                 Title = "Lưu video",
@@ -258,101 +276,92 @@ namespace VDST.ViewModel
                 RestoreDirectory = true,
             };
 
-            if (dlg.ShowDialog() != true)
-                return;
-
+            if (dlg.ShowDialog() != true) return;
             var finalPath = dlg.FileName;
+
             IsLoading = true;
             _currentTempFilePath = null;
             _currentDownloadProcess = null;
+
             try
             {
-                await FFmpegRepositories.Instance.EnsureFfmpegAsync();       
+                // 2. Đảm bảo có FFmpeg
+                await FFmpegRepositories.Instance.EnsureFfmpegAsync();
 
+                // 3. Tải về file tạm (Bước Download)
                 var process = YoutubeRepository.Instance.DownloadVideoAsyncWithProgress(youtubeModel.Url);
                 _currentDownloadProcess = process;
-                string output = string.Empty;
+
+                string outputLog = string.Empty;
                 await Task.Run(() =>
                 {
                     try
                     {
-                        process.OutputDataReceived += (sender, e) =>
+                        process.OutputDataReceived += (s, e) =>
                         {
-                            if (!string.IsNullOrEmpty(e.Data))
-                            {
-                                output += e.Data + Environment.NewLine;
-                            }
+                            if (e.Data != null)
+                                outputLog += e.Data + "\n";
                         };
-
                         process.Start();
-                        process.BeginOutputReadLine();  // đọc stdout async
+                        process.BeginOutputReadLine();
                         process.WaitForExit();
                     }
-                    finally
-                    {
-                        process.Close();
-                        process.Dispose();
-                    }
+                    finally { process.Dispose(); }
                 });
-
                 _currentDownloadProcess = null;
 
-                // 4. Tìm file tạm (ở RootDir hoặc TempDownloadDir tuỳ bạn impl)
-                var tempPath = YoutubeRepository.Instance.ProcessOutputDownload(output, youtubeModel.VideoId);
-
+                // 4. Tìm file kết quả
+                var tempPath = YoutubeRepository.Instance.ProcessOutputDownload(outputLog, youtubeModel.VideoId);
                 if (string.IsNullOrEmpty(tempPath) || !File.Exists(tempPath))
-                    throw new Exception("Không tìm được file video sau khi tải.");
+                    throw new Exception("Lỗi ghép file (Mất tiếng hoặc không tải được). Check log.");
 
                 _currentTempFilePath = tempPath;
 
-                // 5. Dùng FFmpeg check codec, convert nếu cần, rồi move sang finalPath
+
                 var mediaInfo = await Xabe.FFmpeg.FFmpeg.GetMediaInfo(tempPath);
-                if (mediaInfo == null || mediaInfo.VideoStreams == null || !mediaInfo.VideoStreams.Any())
-                {
-                    throw new Exception("File tải xuống không có stream video");
+                var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
 
-                }
-                var codec = mediaInfo.VideoStreams.FirstOrDefault().Codec;
-                string encoder = "h264";
-                string[] listSupportMp = { "h264", "wmv1", "wmv2", "wmv3", "mp1", "mp2", "mp3" };
+                if (videoStream == null)
+                    throw new Exception("File tải về không có hình ảnh (Video Stream Missing).");
 
-                if (listSupportMp.Contains(codec))
+                // Codec hiện tại là gì? (h264, vp9, av1, hevc...)
+                var currentCodec = videoStream.Codec.ToLower();
+
+                // Danh sách các codec "lành tính" cho phép bỏ qua convert
+                string[] safeCodecs = { "h264", "avc1" };
+
+                // Nếu file tải về ĐÃ LÀ H264 (nhờ mẹo -S ở Repo) -> Chỉ việc Move (Nhanh siêu tốc)
+                if (safeCodecs.Any(c => currentCodec.Contains(c)))
                 {
+                    Log.Information("File đã chuẩn H264. Move ngay.");
+                    if (File.Exists(finalPath))
+                        File.Delete(finalPath);
                     File.Move(tempPath, finalPath);
                 }
                 else
                 {
+                    Log.Information($"File đang là {currentCodec}. Bắt đầu Convert sang H264...");
                     var conversion = Xabe.FFmpeg.FFmpeg.Conversions.New();
-                    string cmd = $" -y -i \"{tempPath}\" -c:v h264 -c:a aac \"{finalPath}\" ";
+                    string cmd = $"-y -i \"{tempPath}\" -c:v h264 -preset veryfast -c:a copy \"{finalPath}\"";
 
                     await conversion.Start(cmd);
 
                     File.Delete(tempPath);
                 }
 
-                // 6. Đã xong → không còn file tạm nữa
+                // 6. Hoàn tất
                 _currentTempFilePath = null;
-
-                System.Windows.MessageBox.Show("Tải video thành công!", "Information",
-                                               MessageBoxButton.OK, MessageBoxImage.Information);
+                var res = System.Windows.MessageBox.Show("Tải và xử lý video hoàn tất! Bạn có muốn mở thư mục không?", "Xong", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                if (res == MessageBoxResult.Yes)
+                {
+                    Process.Start("explorer.exe", $"/select, \"{finalPath}\"");
+                }
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(ex.Message, "Lỗi tải video",
-                                               MessageBoxButton.OK, MessageBoxImage.Error);
-
-                try
-                {
-                    if (!string.IsNullOrEmpty(_currentTempFilePath) &&
-                        File.Exists(_currentTempFilePath))
-                    {
-                        File.Delete(_currentTempFilePath);
-                    }
-                }
-                catch (Exception Ex)
-                {
-                    Log.Error(Ex, "Lỗi khi xoá file tạm sau khi tải lỗi");
-                }
+                System.Windows.MessageBox.Show($"Lỗi: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                if (!string.IsNullOrEmpty(_currentTempFilePath) && File.Exists(_currentTempFilePath))
+                    File.Delete(_currentTempFilePath);
             }
             finally
             {
@@ -360,7 +369,6 @@ namespace VDST.ViewModel
                 _currentDownloadProcess = null;
             }
         }
-
 
         private bool CanCheck()
         {
@@ -413,7 +421,7 @@ namespace VDST.ViewModel
                 // 4. Build subtitles
                 var original = detail.OriginSubs;
                 var autoSubtitle = detail.AutoSubs;
-               
+
 
                 if (original != null && original.Length > 0)
                 {

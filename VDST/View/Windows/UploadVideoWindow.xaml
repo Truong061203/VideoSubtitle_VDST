@@ -165,7 +165,7 @@
                 <Button
                     Margin="250,50,250,30"
                     AllowDrop="True"
-                    Command=""
+                    Command="{Binding UploadCommand}"
                     Style="{StaticResource UploadBoxStyle}">
 
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">

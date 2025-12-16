@@ -59,7 +59,6 @@ namespace VDST.View.Windows
                 if (this.DataContext is YoutubeViewModel vm)
                 {
                     vm.OnCheck(null);
-
                     Keyboard.ClearFocus();
                 }
             }
