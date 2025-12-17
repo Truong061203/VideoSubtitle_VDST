@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using VDST.Model;
 
 namespace VDST.Repositories
@@ -25,37 +26,37 @@ namespace VDST.Repositories
             }
         }
 
+        public string GetProjectFolderPath(ProjectInfoModel project)
+        {
+            return project.GetFullPath();
+        }
+      
         public string CreateProjectFolder(ProjectInfoModel project)
         {
-            //    string workDir = project.GetFullPath();
-
-            //    // Tạo các thư mục
-            //    //Directory.CreateDirectory(workDir);
-            //    //Directory.CreateDirectory(Path.Combine(workDir, "input"));
-            //    //Directory.CreateDirectory(Path.Combine(workDir, "output"));
-            //    //Directory.CreateDirectory(Path.Combine(workDir, "audio"));
-            //    //Directory.CreateDirectory(Path.Combine(workDir, "temp"));
 
             string workDir = project.GetFullPath();
             Log.Information("Tạo thư mục dự án tại: {WorkDir}", workDir);
 
             // 2. Tạo thư mục (idempotent, nếu đã tồn tại cũng không lỗi) 
-            if (!Directory.Exists(workDir))
+            try
             {
                 Directory.CreateDirectory(workDir);
+                Directory.CreateDirectory(Path.Combine(workDir, "Input"));
                 Directory.CreateDirectory(Path.Combine(workDir, "Videos"));
                 Directory.CreateDirectory(Path.Combine(workDir, "Temp"));
+                // 3. Tạo đường dẫn file .VDST trong thư mục đó
+                string projectFilePath = Path.Combine(workDir, project.FolderName + ".VDST");
+
+                // 4. Lưu cấu hình dự án vào file .VDST
+                SaveProject(project, projectFilePath);
+
+                return projectFilePath;
             }
-
-
-            // 3. Tạo đường dẫn file .VDST trong thư mục đó
-            string projectFilePath = Path.Combine(workDir, project.FolderName + ".VDST");
-
-            // 4. Lưu cấu hình dự án vào file .VDST
-            SaveProject(project, projectFilePath);
-
-            return projectFilePath;
-
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tạo thư mục dự án: " + ex.Message);
+                throw;
+            }
         }
 
         public void SaveProject(ProjectInfoModel project, string path)

@@ -13,7 +13,7 @@ namespace VDST.Model
 {
     public class ProjectInfoModel : ViewModelBase
     {
-    
+
         private string _projectName;
         public string ProjectName
         {
@@ -132,8 +132,6 @@ namespace VDST.Model
                 RaisePropertyChanged(nameof(VideoPath));
             }
         }
-
-
 
 
         // Đường dẫn file Lyric (.srt)

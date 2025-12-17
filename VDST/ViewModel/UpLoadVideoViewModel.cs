@@ -17,7 +17,7 @@ using VDST.View.Windows;
 
 namespace VDST.ViewModel
 {
-    public class UpLoadVideoViewModel : ViewModelBase
+    public class UpLoadVideoViewModel : ViewModelBase, IViewModel
     {
         #region
         private ProjectInfoModel _currentProject;
@@ -71,35 +71,93 @@ namespace VDST.ViewModel
             }
         }
 
-        #endregion
-
-        /// <summary>
-        /// Load project data from file path
-        /// </summary>
-        public void LoadProjectData(string projectFilePath)
+        private string _selectedVideoPath;
+        public string SelectedVideoPath
         {
-            if (File.Exists(projectFilePath))
+            get => _selectedVideoPath;
+            set
             {
-                var project = ProjectRepositories.Instance.LoadProject(projectFilePath);
-                Log.Information("Loaded project from {ProjectFilePath}", projectFilePath);
-
-                if (project != null)
-                {
-                    CurrentProject = project;
-                    TitleApp = "VDST " + project.ProjectName;
-                    ProjectFilePath = projectFilePath; // GIỮ LUÔN ĐỂ SAU NÀY SAVE
-                }
+                _selectedVideoPath = value;
+                Log.Information("Selected video path set to: {SelectedVideoPath}", SelectedVideoPath);
+                RaisePropertyChanged(nameof(SelectedVideoPath));
             }
         }
 
+        #endregion
+
+
+
         public ICommand CheckUrlCommand { get; set; }
         public ICommand UploadCommand { get; set; }
+        public UpLoadVideoViewModel(string projectPath)
+        {
+            ProjectFilePath = projectPath;
+            LoadProjectData();
+
+        }
         public UpLoadVideoViewModel()
+        {
+            Init_Data();
+        }
+
+
+        public void Init_Data()
         {
             CheckUrlCommand = new VfxCommand(OnCheck, CanCheck);
             UploadCommand = new VfxCommand(OnUpload, () => true);
-
+            TitleApp = "VDST - Upload Video";
         }
+        /// <summary>
+        /// Load project data from file path
+        /// </summary>
+        private void LoadProjectData()
+        {
+            if (string.IsNullOrWhiteSpace(ProjectFilePath))
+            {
+                System.Windows.MessageBox.Show("Đường dẫn file dự án đang trống.", "Lỗi dự án", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            if (!File.Exists(ProjectFilePath))
+            {
+                System.Windows.MessageBox.Show("Không tìm thấy file dự án:\n" + ProjectFilePath,
+                                "Lỗi dự án", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            try
+            {
+                var project = ProjectRepositories.Instance.LoadProject(ProjectFilePath);
+                Log.Information("Loaded project from {ProjectFilePath}", ProjectFilePath);
+
+                if (project == null)
+                {
+                    System.Windows.MessageBox.Show("Không đọc được dữ liệu dự án từ file:\n" + ProjectFilePath,
+                                    "Lỗi dự án", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                CurrentProject = project;
+                TitleApp = "VDST " + project.ProjectName;
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show("Lỗi khi đọc file dự án:\n" + ex.Message,
+                                "Lỗi dự án", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+
+
+        //private async Task<ProjectInfoModel> ImportLocalVideo(ProjectInfoModel projectInfo, string sourceVideoPath)
+        //{
+        //    string workDir = projectInfo.GetFullPath();
+        //    string inputDir = Path.Combine(workDir, "Input");
+        //    string tempDir = Path.Combine(workDir, "Temp");
+        //    string fileName = Path.GetFileName(sourceVideoPath);
+        //    string destVideoPath = Path.Combine(inputDir, fileName);
+        //}
 
         /// <summary>
         /// Upload video file mp4
@@ -109,12 +167,15 @@ namespace VDST.ViewModel
             OpenFileDialog openFileDialog = new OpenFileDialog();
             openFileDialog.Title = "Select Video File to Upload";
             openFileDialog.Filter = "Video Files|*.mp4;*.mov;*.avi;*.mkv;*.flv;*.wmv|All Files|*.*";
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            if (openFileDialog.ShowDialog() == DialogResult.No)
             {
-                string selectedFilePath = openFileDialog.FileName;
-                Log.Information("Selected file for upload: {SelectedFilePath}", selectedFilePath);
+                return;
             }
+            SelectedVideoPath = openFileDialog.FileName;
+            var projectPath = Path.GetFileName(SelectedVideoPath);
+
         }
+
 
         private bool CanCheck()
         {
@@ -164,6 +225,7 @@ namespace VDST.ViewModel
                                     "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+
 
     }
 }
