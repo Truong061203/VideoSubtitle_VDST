@@ -120,81 +120,55 @@ namespace VDST.Repositories
         /// với tên file dạng "%(id)s.%(ext)s"
         /// </summary>
         // Trong YoutubeRepository.cs
+        // Trong YoutubeRepository.cs
+
         public Process DownloadVideoAsyncWithProgress(string url)
         {
             var outTemplate = Path.Combine(TempDownloadDir, "%(id)s.%(ext)s");
+            string ffmpegDir = FFmpegRepositories.Instance.FfmpegDir;
 
-            // Xử lý đường dẫn thư mục FFmpeg (để ghép Audio)
-            string ffmpegPath = FFmpegRepositories.Instance.FfmpegDir;
+            if (!string.IsNullOrEmpty(ffmpegDir) && Path.HasExtension(ffmpegDir))
+            {
+                ffmpegDir = Path.GetDirectoryName(ffmpegDir);
+            }
 
+            string randomUA = VDST.Helpers.UserAgentHelper.GetRandomUserAgent();
 
             var cmd = $"{_fileName} " +
-             $"-f \"bestvideo*+bestaudio/best[has_audio]\" " +
-             $"--merge-output-format mp4 " +
-             $"--ffmpeg-location \"{ffmpegPath}\" " +
-             $"--no-warnings " +
-             // Thêm sleep nhỏ giữa các request (giảm nguy cơ bị 429)
-             $"--sleep-requests 1 " +
-             $"-o \"{outTemplate}\" " +
-             $"\"{url}\"";
+              $"-f \"bv*[ext=mp4][vcodec^=avc1]+ba[ext=m4a]/bv*[vcodec^=avc1]+ba/b[ext=mp4]/b\" " +
+              $"--merge-output-format mp4 " +
+              $"--ffmpeg-location \"{ffmpegDir}\" " +
+              $"--no-warnings " +
+              $"--user-agent \"{randomUA}\" " +
+              $"-o \"{outTemplate}\" " +
+              $"\"{url}\"";
 
-            Log.Information("Running download command: {cmd}", cmd);
-            var process = RunCMDWithProgress(cmd);
-            return process;
-
-
-
-
-
+            Log.Information("Running optimized download: {cmd}", cmd);
+            return RunCMDWithProgress(cmd);
         }
+
         /// <summary>
         /// Phân tích output của yt-dlp để tìm tên file .mp4 đã tải về trong thư mục RootDir
         /// </summary>
-        public string ProcessOutputDownload(string output, string id)
+        public string ProcessOutputDownload(string output, string videoId)
         {
 
-            var finalPath = Path.Combine(TempDownloadDir, $"{id}.mp4");
-            if (File.Exists(finalPath))
-                return finalPath;
+            var expectedPath = Path.Combine(TempDownloadDir, $"{videoId}.mp4");
+            if (File.Exists(expectedPath))
+                return expectedPath;
 
-            // 2. Nếu vì lý do nào đó tên không đúng id.mp4, thử parse log để lấy file mp4 bất kỳ
-            var lines = output?.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
-                        ?? Array.Empty<string>();
-            var regex = new Regex(@".{1,}""(.{1,})""");
-
-            foreach (var line in lines)
+            if (Directory.Exists(TempDownloadDir))
             {
-                var match = regex.Match(line);
-                if (!match.Success)
-                    continue;
+                var files = Directory.GetFiles(TempDownloadDir, $"*{videoId}*");
+                // Ưu tiên mp4
+                var mp4 = files.FirstOrDefault(f => f.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase));
+                if (mp4 != null)
+                    return mp4;
 
-                var fileName = match.Groups[1].Value?.Trim();
-                if (string.IsNullOrEmpty(fileName))
-                    continue;
-
-                if (!fileName.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase))
-                    continue;
-
-                string path;
-                if (Path.IsPathRooted(fileName))
-                {
-
-                    path = fileName;
-                }
-                else
-                {
-                    // chỉ in file name → ghép vào TempDownloadDir
-                    path = Path.Combine(TempDownloadDir, fileName);
-                }
-                if (File.Exists(path))
-                    return path;
+                // Lấy file bất kỳ nếu không có mp4 (mkv, webm...)
+                if (files.Length > 0)
+                    return files[0];
             }
-
-            // 3. Fallback cuối: tìm file *.mp4 nào chứa id trong tên
-            var files = Directory.GetFiles(TempDownloadDir, $"*{id}*.mp4");
-            if (files.Length > 0)
-                return files[0];
-
             return string.Empty;
         }
 
@@ -204,7 +178,7 @@ namespace VDST.Repositories
         /// </summary>
         private async Task<string> RunCMDAsync(string cmd)
         {
-            // 1: Cấu hình process để chạy "cmd /c [lệnh]"
+
             var process = new Process();
             process.StartInfo.FileName = "cmd.exe";
             process.StartInfo.Arguments = $"/c {cmd}";
@@ -214,57 +188,89 @@ namespace VDST.Repositories
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;
             process.StartInfo.StandardOutputEncoding = Encoding.UTF8;
-
-            //2: Chạy và đọc output + error
             process.Start();
 
             var output = await process.StandardOutput.ReadToEndAsync();
             var err = await process.StandardError.ReadToEndAsync();
             await process.WaitForExitAsync();
 
-            // B3: Nếu lỗi → ném exception, ngược lại trả về stdout (JSON)
             if (process.ExitCode != 0)
                 throw new Exception($"yt-dlp error: {err}");
-
             return output;
         }
 
         /// <summary>
         /// Get Youtube Detail từ URL video
         /// </summary>
+        // Trong YoutubeRepository.cs
+
         public async Task<YoutubeDetailDTO> GetYoutubeDetailAsync(string url)
         {
-            //1. check xem đã có yt-dlp.exe chưa và tải về nếu chưa có
+            // 1. Đảm bảo tool đã có
             await DownloadYtbAsync();
 
-            // 2. Gọi yt-dlp để lấy JSON
-            var cmd = $"{_fileName} -j \"{url}\"";
-            Log.Information("Running command: {cmd}", cmd);
+            // 2. Cấu hình Retry (Thử lại tối đa 3 lần nếu thất bại)
+            int maxRetries = 3;
+            int currentRetry = 0;
+            string output = string.Empty;
 
-            var output = await RunCMDAsync(cmd);
-            if (string.IsNullOrWhiteSpace(output))
+            while (currentRetry < maxRetries)
+            {
+                try
+                {
+                    currentRetry++;
+
+                    string randomUA = VDST.Helpers.UserAgentHelper.GetRandomUserAgent();
+
+                    var cmd = $"{_fileName} " +
+                              $"--dump-json " +
+                              $"--no-warnings " +
+                              $"--socket-timeout 10 " +
+                              $"--user-agent \"{randomUA}\" " +
+                              $"\"{url}\"";
+
+                    Log.Information($"[Attempt {currentRetry}] Getting Info: {url}");
+
+                    // Gọi lệnh
+                    output = await RunCMDAsync(cmd);
+
+                    // Nếu lấy được dữ liệu -> Thoát vòng lặp ngay
+                    if (!string.IsNullOrWhiteSpace(output))
+                    {
+                        break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning($"Lần thử {currentRetry} thất bại: {ex.Message}");
+
+                    if (currentRetry >= maxRetries) throw;
+
+                    await Task.Delay(1500);
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(output)) return null;
+
+            try
+            {
+                var dto = JsonConvert.DeserializeObject<Model.Youtubes.YoutubeDetailDTO>(output);
+                if (dto == null) return null;
+
+                // Xử lý Subtitle (Code cũ của bạn giữ nguyên đoạn này ok)
+                var subtiles = GetSubtitles(output, "subtitles");
+                if (subtiles != null) dto.OriginSubs = subtiles.ToArray();
+
+                var autoSubtiles = GetSubtitles(output, "automatic_captions");
+                if (autoSubtiles != null) dto.AutoSubs = autoSubtiles.ToArray();
+
+                return dto;
+            }
+            catch (JsonException jsonEx)
+            {
+                Log.Error(jsonEx, "Lỗi Parse JSON từ yt-dlp");
                 return null;
-
-            // 3. Parse JSON thành DTO
-            var dto = JsonConvert.DeserializeObject<Model.Youtubes.YoutubeDetailDTO>(output);
-
-            if (dto == null)
-                return null;
-
-            // 4. Lấy subtitles & auto-subtitles
-            var subtiles = GetSubtitles(output, "subtitles");
-            Log.Information("Original Subtitles: {subtiles}", subtiles);
-            if (subtiles != null)
-                dto.OriginSubs = subtiles.ToArray();
-
-            //5: Lấy subtitles gốc(subtitles) và gán vào DTO
-            var autoSubtiles = GetSubtitles(output, "automatic_captions");
-            Log.Information("Automatic Subtitles: {autoSubtiles}", autoSubtiles.ToString());
-            if (autoSubtiles != null)
-                dto.AutoSubs = autoSubtiles.ToArray();
-
-            return dto;
-
+            }
         }
 
         /// <summary>

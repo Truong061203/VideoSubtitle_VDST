@@ -18,6 +18,7 @@ using VDST.Commands;
 using VDST.Model.Youtubes;
 using VDST.Repositories;
 using VDST.Respositories;
+using Xabe.FFmpeg;
 
 namespace VDST.ViewModel
 {
@@ -76,6 +77,7 @@ namespace VDST.ViewModel
                 {
                     _searchSubText = value;
                     Log.Information("Search Text : " + SearchSubText);
+                    FilterSubtitles();
                     RaisePropertyChanged(nameof(SearchSubText));
                 }
             }
@@ -122,7 +124,6 @@ namespace VDST.ViewModel
 
             if (obj is SubtitleFormatModel model)
             {
-                // 2. Mở hộp thoại chọn nơi lưu (Logic Senior)
                 var saveFileDialog = new Microsoft.Win32.SaveFileDialog()
                 {
                     Title = "Lưu phụ đề",
@@ -134,7 +135,7 @@ namespace VDST.ViewModel
                 {
                     var finalPath = saveFileDialog.FileName;
 
-                    // Tạo file tạm để tải về trước (Tránh lỗi file đích đang mở)
+
                     var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".tmp");
 
                     try
@@ -153,12 +154,12 @@ namespace VDST.ViewModel
                             if (string.IsNullOrWhiteSpace(content))
                                 throw new Exception("Nội dung phụ đề rỗng.");
 
-                            // Ghi nội dung vào file tạm
+
                             File.WriteAllText(tempFile, content);
 
-                            // 4. Di chuyển file tạm sang file đích
+
                             if (File.Exists(finalPath))
-                                File.Delete(finalPath); // Xóa nếu trùng
+                                File.Delete(finalPath);
                             File.Move(tempFile, finalPath);
 
                             // 5. Thông báo thành công & Mở thư mục
@@ -183,7 +184,6 @@ namespace VDST.ViewModel
                     finally
                     {
                         IsLoading = false;
-                        // Dọn dẹp file rác
                         if (File.Exists(tempFile))
                             File.Delete(tempFile);
                     }
@@ -268,90 +268,140 @@ namespace VDST.ViewModel
 
         private async void OnDownloadVideo(object obj)
         {
-            // 1. Chọn nơi lưu
             var dlg = new Microsoft.Win32.SaveFileDialog
             {
                 Title = "Lưu video",
                 Filter = "Video files (*.mp4)|*.mp4",
-                RestoreDirectory = true,
+                FileName = $"Video.mp4"
             };
 
-            if (dlg.ShowDialog() != true) return;
-            var finalPath = dlg.FileName;
+            if (dlg.ShowDialog() != true)
+                return;
 
+            var finalPath = dlg.FileName;
             IsLoading = true;
             _currentTempFilePath = null;
             _currentDownloadProcess = null;
 
             try
             {
-                // 2. Đảm bảo có FFmpeg
                 await FFmpegRepositories.Instance.EnsureFfmpegAsync();
 
-                // 3. Tải về file tạm (Bước Download)
                 var process = YoutubeRepository.Instance.DownloadVideoAsyncWithProgress(youtubeModel.Url);
                 _currentDownloadProcess = process;
-
                 string outputLog = string.Empty;
+
                 await Task.Run(() =>
                 {
                     try
                     {
                         process.OutputDataReceived += (s, e) =>
                         {
-                            if (e.Data != null)
+                            if (!string.IsNullOrEmpty(e.Data))
                                 outputLog += e.Data + "\n";
                         };
+                        process.ErrorDataReceived += (s, e) =>
+                        {
+                            if (!string.IsNullOrEmpty(e.Data))
+                                outputLog += e.Data + "\n";
+                        };
+
                         process.Start();
                         process.BeginOutputReadLine();
+                        process.BeginErrorReadLine();
                         process.WaitForExit();
                     }
-                    finally { process.Dispose(); }
+                    finally
+                    {
+                        process.Dispose();
+                    }
                 });
+
                 _currentDownloadProcess = null;
 
-                // 4. Tìm file kết quả
+                // 4. Tìm file tạm
                 var tempPath = YoutubeRepository.Instance.ProcessOutputDownload(outputLog, youtubeModel.VideoId);
                 if (string.IsNullOrEmpty(tempPath) || !File.Exists(tempPath))
-                    throw new Exception("Lỗi ghép file (Mất tiếng hoặc không tải được). Check log.");
+                    throw new Exception("Không tìm thấy file đã tải. Kiểm tra log yt-dlp.");
 
                 _currentTempFilePath = tempPath;
 
-
+                // 5. Phân tích codec (Video + Audio)
                 var mediaInfo = await Xabe.FFmpeg.FFmpeg.GetMediaInfo(tempPath);
                 var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
+                var audioStream = mediaInfo.AudioStreams.FirstOrDefault();
 
                 if (videoStream == null)
-                    throw new Exception("File tải về không có hình ảnh (Video Stream Missing).");
+                    throw new Exception("File không có video stream.");
 
-                // Codec hiện tại là gì? (h264, vp9, av1, hevc...)
-                var currentCodec = videoStream.Codec.ToLower();
+                // Check codec
+                string videoCodec = videoStream.Codec.ToLower();
+                string audioCodec = audioStream?.Codec.ToLower() ?? "";
 
-                // Danh sách các codec "lành tính" cho phép bỏ qua convert
-                string[] safeCodecs = { "h264", "avc1" };
+                bool isH264 = videoCodec.Contains("h264") || videoCodec.Contains("avc1");
+                bool isAac = audioCodec.Contains("aac");
+                bool hasAudio = audioStream != null;
 
-                // Nếu file tải về ĐÃ LÀ H264 (nhờ mẹo -S ở Repo) -> Chỉ việc Move (Nhanh siêu tốc)
-                if (safeCodecs.Any(c => currentCodec.Contains(c)))
+                Log.Information($"Video Codec: {videoCodec} | Audio Codec: {audioCodec}");
+
+                // ⚠️ Cảnh báo nếu không có audio
+                if (!hasAudio)
                 {
-                    Log.Information("File đã chuẩn H264. Move ngay.");
+                    var confirm = System.Windows.MessageBox.Show(
+                        "⚠️ Video KHÔNG CÓ TIẾNG!\nCó thể do:\n- Video gốc không có âm thanh\n- Lỗi merge FFmpeg\n\nBạn có muốn giữ lại?",
+                        "Thiếu Audio Stream",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Warning);
+
+                    if (confirm == MessageBoxResult.No)
+                        throw new Exception("Đã hủy vì video không có tiếng.");
+                }
+
+                // 6. Quyết định xử lý (3 CASES)
+
+                if (isH264 && (isAac || !hasAudio))
+                {
+                    Log.Information("✅ CASE A: File đã chuẩn (H264 + AAC). Move trực tiếp.");
+
                     if (File.Exists(finalPath))
                         File.Delete(finalPath);
+
                     File.Move(tempPath, finalPath);
+                }
+                else if (isH264 && !isAac && hasAudio)
+                {
+                    Log.Information($"⚡ CASE B: Video H264 OK, nhưng audio {audioCodec}. Remux audio sang AAC.");
+
+                    var conversion = Xabe.FFmpeg.FFmpeg.Conversions.New();
+
+                    string cmd = $"-y -i \"{tempPath}\" -c:v copy -c:a aac -b:a 192k \"{finalPath}\"";
+
+                    await conversion.Start(cmd);
+                    File.Delete(tempPath);
                 }
                 else
                 {
-                    Log.Information($"File đang là {currentCodec}. Bắt đầu Convert sang H264...");
+                    Log.Information($"🔄 CASE C: Video {videoCodec} không phổ thông. Convert H264 + AAC.");
+
                     var conversion = Xabe.FFmpeg.FFmpeg.Conversions.New();
-                    string cmd = $"-y -i \"{tempPath}\" -c:v h264 -preset veryfast -c:a copy \"{finalPath}\"";
+
+                    // Encode cả video và audio
+                    string audioParams = hasAudio ? "-c:a aac -b:a 192k" : "-an";
+                    string cmd = $"-y -i \"{tempPath}\" -c:v h264 -preset veryfast {audioParams} \"{finalPath}\"";
 
                     await conversion.Start(cmd);
-
                     File.Delete(tempPath);
                 }
 
-                // 6. Hoàn tất
+                // 7. Hoàn tất
                 _currentTempFilePath = null;
-                var res = System.Windows.MessageBox.Show("Tải và xử lý video hoàn tất! Bạn có muốn mở thư mục không?", "Xong", MessageBoxButton.YesNo, MessageBoxImage.Information);
+
+                var res = System.Windows.MessageBox.Show(
+                    $"✅ Tải thành công!\n📁 {Path.GetFileName(finalPath)}\n\nBạn có muốn mở file ngay?",
+                    "Hoàn tất",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Information);
+
                 if (res == MessageBoxResult.Yes)
                 {
                     Process.Start("explorer.exe", $"/select, \"{finalPath}\"");
@@ -359,17 +409,33 @@ namespace VDST.ViewModel
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show($"Lỗi: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Log.Error(ex, "Lỗi tải video");
+                System.Windows.MessageBox.Show(
+                    $"❌ Lỗi: {ex.Message}\n\nKiểm tra log để biết chi tiết.",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+
                 if (!string.IsNullOrEmpty(_currentTempFilePath) && File.Exists(_currentTempFilePath))
+                {
+
                     File.Delete(_currentTempFilePath);
+
+                }
             }
             finally
             {
+                // Đảm bảo cleanup
+                if (!string.IsNullOrEmpty(_currentTempFilePath) && File.Exists(_currentTempFilePath))
+                {
+                    try { File.Delete(_currentTempFilePath); }
+                    catch { }
+                }
+
                 IsLoading = false;
                 _currentDownloadProcess = null;
             }
         }
-
         private bool CanCheck()
         {
             return !string.IsNullOrWhiteSpace(InputUrl) && !IsLoading;
@@ -391,9 +457,9 @@ namespace VDST.ViewModel
                 youtubeModel.Subtitles.Clear();
                 youtubeModel.SubFilters.Clear();
                 youtubeModel.Url = url;
-
+                YoutubeDetailDTO detail = null;
                 // 2. Gọi repo lấy detail
-                var detail = await YoutubeRepository.Instance.GetYoutubeDetailAsync(url);
+                detail = await YoutubeRepository.Instance.GetYoutubeDetailAsync(url);
                 if (detail == null)
                 {
                     System.Windows.MessageBox.Show("Không lấy được thông tin video.", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -403,19 +469,25 @@ namespace VDST.ViewModel
                 youtubeModel.VideoId = detail.Id;
                 youtubeModel.Duration = TimeSpan.FromSeconds(detail.Duration);
                 youtubeModel.Title = $"{detail.Title} [{youtubeModel.Duration:mm\\:ss}]";
-
-                // 3. Download thumbnail
-                using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(90) })
+                try
                 {
-                    byte[] imageData = await client.GetByteArrayAsync(detail.Thumbnail);
-                    var bitmap = new BitmapImage();
-                    bitmap.BeginInit();
-                    bitmap.StreamSource = new MemoryStream(imageData);
-                    bitmap.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmap.EndInit();
-                    bitmap.Freeze();
+                    // 3. Download thumbnail
+                    using (var client = new HttpClient { Timeout = TimeSpan.FromSeconds(90) })
+                    {
+                        byte[] imageData = await client.GetByteArrayAsync(detail.Thumbnail);
+                        var bitmap = new BitmapImage();
+                        bitmap.BeginInit();
+                        bitmap.StreamSource = new MemoryStream(imageData);
+                        bitmap.CacheOption = BitmapCacheOption.OnLoad;
+                        bitmap.EndInit();
+                        bitmap.Freeze();
 
-                    youtubeModel.Thumbnail = bitmap;
+                        youtubeModel.Thumbnail = bitmap;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning("Không tải được thumbnail: " + ex.Message);
                 }
 
                 // 4. Build subtitles
