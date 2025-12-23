@@ -132,18 +132,18 @@ namespace VDST.Repositories
                 ffmpegDir = Path.GetDirectoryName(ffmpegDir);
             }
 
-            string randomUA = VDST.Helpers.UserAgentHelper.GetRandomUserAgent();
+            string currentUA = VDST.Helpers.UserAgentHelper.GetCurrentUA();
 
             var cmd = $"{_fileName} " +
-              $"-f \"bv*[ext=mp4][vcodec^=avc1]+ba[ext=m4a]/bv*[vcodec^=avc1]+ba/b[ext=mp4]/b\" " +
-              $"--merge-output-format mp4 " +
-              $"--ffmpeg-location \"{ffmpegDir}\" " +
-              $"--no-warnings " +
-              $"--user-agent \"{randomUA}\" " +
-              $"-o \"{outTemplate}\" " +
-              $"\"{url}\"";
+                      $"-S \"res,ext,vcodec:h264\" " +
+                      $"--merge-output-format mp4 " +
+                      $"--ffmpeg-location \"{ffmpegDir}\" " +
+                      $"--no-warnings " +
+                      $"--user-agent \"{currentUA}\" " + // Dùng UA xịn
+                      $"-o \"{outTemplate}\" " +
+                      $"\"{url}\"";
 
-            Log.Information("Running optimized download: {cmd}", cmd);
+            Log.Information($"[Download Start] UA: {currentUA}");
             return RunCMDWithProgress(cmd);
         }
 
@@ -199,6 +199,7 @@ namespace VDST.Repositories
             return output;
         }
 
+
         /// <summary>
         /// Get Youtube Detail từ URL video
         /// </summary>
@@ -206,56 +207,60 @@ namespace VDST.Repositories
 
         public async Task<YoutubeDetailDTO> GetYoutubeDetailAsync(string url)
         {
-            // 1. Đảm bảo tool đã có
             await DownloadYtbAsync();
 
-            // 2. Cấu hình Retry (Thử lại tối đa 3 lần nếu thất bại)
             int maxRetries = 3;
             int currentRetry = 0;
             string output = string.Empty;
+            bool success = false;
 
-            while (currentRetry < maxRetries)
+            while (currentRetry < maxRetries && !success)
             {
                 try
                 {
                     currentRetry++;
 
-                    string randomUA = VDST.Helpers.UserAgentHelper.GetRandomUserAgent();
+                    // TIÊU CHÍ 5: Lấy UA đã Validate
+                    string ua = VDST.Helpers.UserAgentHelper.GetCurrentUA();
 
-                    var cmd = $"{_fileName} " +
-                              $"--dump-json " +
-                              $"--no-warnings " +
-                              $"--socket-timeout 10 " +
-                              $"--user-agent \"{randomUA}\" " +
-                              $"\"{url}\"";
+                    // Log UA để debug (TIÊU CHÍ 4)
+                    Log.Information($"[GetInfo Attempt {currentRetry}/{maxRetries}] UA: {ua}");
 
-                    Log.Information($"[Attempt {currentRetry}] Getting Info: {url}");
+                    var cmd = $"{_fileName} --dump-json --no-warnings --socket-timeout 10 --user-agent \"{ua}\" \"{url}\"";
 
-                    // Gọi lệnh
                     output = await RunCMDAsync(cmd);
 
-                    // Nếu lấy được dữ liệu -> Thoát vòng lặp ngay
-                    if (!string.IsNullOrWhiteSpace(output))
-                    {
-                        break;
-                    }
+                    // Nếu chạy đến đây mà không lỗi -> Thành công
+                    success = true;
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning($"Lần thử {currentRetry} thất bại: {ex.Message}");
+                    // TIÊU CHÍ 3: Test khi bị lỗi 403/429
+                    // Nếu lỗi liên quan đến chặn mạng -> Rotate ngay lập tức
+                    if (ex.Message.Contains("HTTP Error 429") || ex.Message.Contains("HTTP Error 403"))
+                    {
+                        Log.Warning($"🔥 Phát hiện bị chặn IP ({ex.Message}). Đang đổi danh tính...");
+                        VDST.Helpers.UserAgentHelper.RotateUserAgent();
+                    }
+                    else
+                    {
+                        Log.Warning($"Lỗi thường ({ex.Message}). Thử lại...");
+                    }
 
-                    if (currentRetry >= maxRetries) throw;
+                    if (currentRetry >= maxRetries) throw; // Hết lượt thì ném lỗi
 
-                    await Task.Delay(1500);
+                    await Task.Delay(1500 * currentRetry); // Backoff: Đợi lâu hơn sau mỗi lần lỗi
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(output)) return null;
+            if (string.IsNullOrWhiteSpace(output))
+                return null;
 
             try
             {
                 var dto = JsonConvert.DeserializeObject<Model.Youtubes.YoutubeDetailDTO>(output);
-                if (dto == null) return null;
+                if (dto == null)
+                    return null;
 
                 // Xử lý Subtitle (Code cũ của bạn giữ nguyên đoạn này ok)
                 var subtiles = GetSubtitles(output, "subtitles");

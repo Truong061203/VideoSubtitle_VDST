@@ -328,8 +328,11 @@ namespace VDST.ViewModel
 
                 // 5. Phân tích codec (Video + Audio)
                 var mediaInfo = await Xabe.FFmpeg.FFmpeg.GetMediaInfo(tempPath);
-                var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
+                Log.Information("Media Information : "+mediaInfo);
+                var videoStream = mediaInfo.VideoStreams.FirstOrDefault(); 
+                Log.Information("Video Stream : "+videoStream); 
                 var audioStream = mediaInfo.AudioStreams.FirstOrDefault();
+                Log.Information("Media Information : " + mediaInfo");
 
                 if (videoStream == null)
                     throw new Exception("File không có video stream.");
