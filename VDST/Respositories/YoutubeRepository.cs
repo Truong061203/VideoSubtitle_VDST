@@ -139,7 +139,7 @@ namespace VDST.Repositories
                       $"--merge-output-format mp4 " +
                       $"--ffmpeg-location \"{ffmpegDir}\" " +
                       $"--no-warnings " +
-                      $"--user-agent \"{currentUA}\" " + // Dùng UA xịn
+                      $"--user-agent \"{currentUA}\" " + 
                       $"-o \"{outTemplate}\" " +
                       $"\"{url}\"";
 
@@ -160,12 +160,11 @@ namespace VDST.Repositories
             if (Directory.Exists(TempDownloadDir))
             {
                 var files = Directory.GetFiles(TempDownloadDir, $"*{videoId}*");
-                // Ưu tiên mp4
+                
                 var mp4 = files.FirstOrDefault(f => f.EndsWith(".mp4", StringComparison.OrdinalIgnoreCase));
                 if (mp4 != null)
                     return mp4;
 
-                // Lấy file bất kỳ nếu không có mp4 (mkv, webm...)
                 if (files.Length > 0)
                     return files[0];
             }
@@ -230,7 +229,7 @@ namespace VDST.Repositories
 
                     output = await RunCMDAsync(cmd);
 
-                    // Nếu chạy đến đây mà không lỗi -> Thành công
+
                     success = true;
                 }
                 catch (Exception ex)
@@ -264,10 +263,12 @@ namespace VDST.Repositories
 
                 // Xử lý Subtitle (Code cũ của bạn giữ nguyên đoạn này ok)
                 var subtiles = GetSubtitles(output, "subtitles");
-                if (subtiles != null) dto.OriginSubs = subtiles.ToArray();
+                if (subtiles != null) 
+                    dto.OriginSubs = subtiles.ToArray();
 
                 var autoSubtiles = GetSubtitles(output, "automatic_captions");
-                if (autoSubtiles != null) dto.AutoSubs = autoSubtiles.ToArray();
+                if (autoSubtiles != null) 
+                    dto.AutoSubs = autoSubtiles.ToArray();
 
                 return dto;
             }

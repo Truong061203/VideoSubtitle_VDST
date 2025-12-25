@@ -135,57 +135,92 @@ namespace VDST.ViewModel
                 {
                     var finalPath = saveFileDialog.FileName;
 
-
                     var tempFile = Path.Combine(Path.GetTempPath(), Guid.NewGuid() + ".tmp");
+                    IsLoading = true;
 
                     try
                     {
-                        IsLoading = true;
-                        var httpClient = new HttpClient()
+                        // --- CHIẾN THUẬT SENIOR: RETRY + RANDOM UA ---
+                        int maxRetries = 3;
+                        int currentRetry = 0;
+                        bool success = false;
+                        while (currentRetry < maxRetries && !success)
                         {
-                            Timeout = TimeSpan.FromSeconds(60),
-                        };
-                        var response = await httpClient.GetAsync(model.Url);
-
-                        if (response.IsSuccessStatusCode)
-                        {
-                            var content = await response.Content.ReadAsStringAsync();
-
-                            if (string.IsNullOrWhiteSpace(content))
-                                throw new Exception("Nội dung phụ đề rỗng.");
-
-
-                            File.WriteAllText(tempFile, content);
-
-
-                            if (File.Exists(finalPath))
-                                File.Delete(finalPath);
-                            File.Move(tempFile, finalPath);
-
-                            // 5. Thông báo thành công & Mở thư mục
-                            var result = System.Windows.MessageBox.Show("Tải file phụ đề thành công!\nBạn có muốn mở thư mục chứa file không?",
-                                                         "Phụ đề", MessageBoxButton.YesNo, MessageBoxImage.Information);
-
-                            if (result == MessageBoxResult.Yes)
+                            try
                             {
-                                // Mở Explorer và chọn sẵn file đó
-                                Process.Start("explorer.exe", $"/select, \"{finalPath}\"");
+                                currentRetry++;
+
+                                string ua = VDST.Helpers.UserAgentHelper.GetCurrentUA();
+
+                                using (var httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) })
+                                {
+                                    httpClient.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
+
+                                    httpClient.DefaultRequestHeaders.Referrer = new Uri("https://www.youtube.com/");
+
+                                    var response = await httpClient.GetAsync(model.Url);
+
+                                    if (response.IsSuccessStatusCode)
+                                    {
+                                        var content = await response.Content.ReadAsStringAsync();
+                                        if (string.IsNullOrWhiteSpace(content))
+                                            throw new Exception("Nội dung file rỗng.");
+
+                                        File.WriteAllText(tempFile, content);
+                                        success = true;
+                                    }
+                                    else if ((int)response.StatusCode == 429) // Too Many Requests
+                                    {
+                                        throw new Exception("HTTP 429: Too Many Requests");
+                                    }
+                                    else
+                                    {
+                                        throw new Exception($"HTTP Error {response.StatusCode}");
+                                    }
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Serilog.Log.Warning($"[Sub Download] Lần {currentRetry} lỗi: {ex.Message}");
+
+                                if (ex.Message.Contains("429") || ex.Message.Contains("403"))
+                                {
+                                    Serilog.Log.Warning("Bị chặn khi tải Sub. Đang đổi User-Agent...");
+                                    VDST.Helpers.UserAgentHelper.RotateUserAgent();
+                                }
+
+                                if (currentRetry >= maxRetries)
+                                    throw;
+
+                                await Task.Delay(1500 * currentRetry);
                             }
                         }
-                        else
+
+                        if (success)
                         {
-                            throw new Exception($"Lỗi tải: {response.StatusCode}");
+                            if (File.Exists(finalPath)) File.Delete(finalPath);
+                            File.Move(tempFile, finalPath);
+
+                            var res = System.Windows.MessageBox.Show("Tải phụ đề thành công!\nMở thư mục không?", "Xong", MessageBoxButton.YesNo, MessageBoxImage.Information);
+                            if (res == MessageBoxResult.Yes)
+                            {
+                                Process.Start("explorer.exe", $"/select, \"{finalPath}\"");
+                            }
                         }
                     }
                     catch (Exception ex)
                     {
-                        System.Windows.MessageBox.Show($"Lỗi: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                        System.Windows.MessageBox.Show($"Lỗi tải phụ đề: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                     finally
                     {
                         IsLoading = false;
                         if (File.Exists(tempFile))
-                            File.Delete(tempFile);
+                            try
+                            {
+                                File.Delete(tempFile);
+                            }
+                            catch { }
                     }
                 }
             }
@@ -265,7 +300,6 @@ namespace VDST.ViewModel
         /// Download video from youtube
         /// </summary>
         // Trong YoutubeViewModel.cs
-
         private async void OnDownloadVideo(object obj)
         {
             var dlg = new Microsoft.Win32.SaveFileDialog
@@ -328,11 +362,11 @@ namespace VDST.ViewModel
 
                 // 5. Phân tích codec (Video + Audio)
                 var mediaInfo = await Xabe.FFmpeg.FFmpeg.GetMediaInfo(tempPath);
-                Log.Information("Media Information : "+mediaInfo);
-                var videoStream = mediaInfo.VideoStreams.FirstOrDefault(); 
-                Log.Information("Video Stream : "+videoStream); 
+                Log.Information("Media Information : " + mediaInfo);
+                var videoStream = mediaInfo.VideoStreams.FirstOrDefault();
+                Log.Information("Video Stream : " + videoStream);
                 var audioStream = mediaInfo.AudioStreams.FirstOrDefault();
-                Log.Information("Media Information : " + mediaInfo");
+                Log.Information("AufioStream : " + audioStream);
 
                 if (videoStream == null)
                     throw new Exception("File không có video stream.");

@@ -53,6 +53,7 @@ namespace VDST.Helpers
                     return;
                 }
 
+                Log.Information($"[UA Rotated] Old: ...{oldUA?.Substring(Math.Max(0, (oldUA?.Length ?? 0) - 10)) ?? "null"} -> New: ...{_currentUserAgent.Substring(_currentUserAgent.Length - 10)}");
             }
             catch (Exception ex)
             {

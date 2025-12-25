@@ -146,6 +146,8 @@ namespace VDST.Model
             }
         }
 
+        public string SubtitlePath { get; set; }
+
         // Trạng thái hiện tại (Ví dụ: "Đang tải video", "Hoàn thành")
         private string _status = "Mới tạo";
         public string Status
@@ -157,6 +159,21 @@ namespace VDST.Model
                 RaisePropertyChanged(nameof(Status));
             }
         }
+
+        private string _audioPath;
+        public string AudioPath
+        {
+            get => _audioPath;
+            set { _audioPath = value; RaisePropertyChanged(nameof(AudioPath)); }
+        }
+
+        private string _projectFilePath;
+        public string ProjectFilePath
+        {
+            get => _projectFilePath;
+            set { _projectFilePath = value; RaisePropertyChanged(nameof(ProjectFilePath)); }
+        }
+
     }
 }
 
